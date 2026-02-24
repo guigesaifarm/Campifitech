@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAMPIFITECH AgroTech - Gestão Inteligente de Soja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Grid Background */
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        /* Glass Effect */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
+        /* Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        
+        .pulse-marker {
+            position: relative;
+        }
+        .pulse-marker::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border: 2px solid #22c55e;
+            border-radius: 50%;
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #22c55e, transparent);
+            box-shadow: 0 0 10px #22c55e;
+            animation: scan 3s linear infinite;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #22c55e;
+            border-radius: 4px;
+        }
+        
+        /* Code Block Styling */
+        .code-block {
+            background: #1e293b;
+            border-left: 3px solid #22c55e;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Interactive Map Grid */
+        .map-cell {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .map-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        .status-optimal { background: rgba(34, 197, 94, 0.6); }
+        .status-warning { background: rgba(234, 179, 8, 0.6); }
+        .status-critical { background: rgba(239, 68, 68, 0.6); }
+        .status-harvest { background: rgba(59, 130, 246, 0.8); }
+        
+        /* Loading Animation */
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+        
+        /* Terminal Effect */
+        .terminal-cursor::after {
+            content: '▋';
+            animation: blink 1s step-end infinite;
+            color: #22c55e;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-grid min-h-screen overflow-x-hidden">
+
+    <!-- Top Navigation -->
+    <nav class="glass fixed w-full z-50 px-6 py-4 border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-lg flex items-center justify-center shadow-lg shadow-green-500/30">
+                    <i class="fas fa-seedling text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight text-white">CAMPIFI<span class="text-green-400">TECH</span></h1>
+                    <p class="text-xs text-slate-400 mono">AGROTECH SOLUTIONS v2.4.1</p>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-6">
+                <div class="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-full border border-slate-700">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm text-slate-300 mono">SISTEMA ONLINE</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-white">Fazenda Modelo SP</p>
+                    <p class="text-xs text-slate-400">Talhão 12 - Soja 2026</p>
+                </div>
+                <button onclick="toggleDemoMode()" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+                    <i class="fas fa-play"></i> DEMO AO VIVO
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <main class="pt-24 pb-12 px-4 max-w-[1600px] mx-auto">
+        
+        <!-- Header Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-slate-400 text-sm">Área Monitorada</span>
+                    <i class="fas fa-map text-green-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-white mono">1,240 <span class="text-sm text-slate-400">ha</span></p>
+                <p class="text-xs text-green-400 mt-1">↑ 12% vs temporada anterior</p>
+            </div>
+            
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-slate-400 text-sm">Produtividade Est.</span>
+                    <i class="fas fa-chart-line text-blue-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-white mono">58.4 <span class="text-sm text-slate-400">sc/ha</span></p>
+                <p class="text-xs text-blue-400 mt-1">← Análise ML atualizada</p>
+            </div>
+            
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-slate-400 text-sm">Umidade Grão</span>
+                    <i class="fas fa-tint text-yellow-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-white mono">13.2 <span class="text-sm text-slate-400">%</span></p>
+                <p class="text-xs text-yellow-400 mt-1">⚠ Próximo ao limite ideal</p>
+            </div>
+            
+            <div class="glass-panel p-4 rounded-xl">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-slate-400 text-sm">Previsão Colheita</span>
+                    <i class="fas fa-clock text-purple-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-white mono">7 <span class="text-sm text-slate-400">dias</span></p>
+                <p class="text-xs text-purple-400 mt-1">Janela ótima: 15-22 Mar</p>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Interactive Map (QGIS Simulation) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Map Visualization -->
+                <div class="glass-panel rounded-2xl p-1 overflow-hidden relative">
+                    <div class="flex justify-between items-center p-4 border-b border-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-satellite text-green-400"></i>
+                            <h3 class="font-semibold text-white">Monitoramento NDVI - Talhão 12</h3>
+                            <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded border border-green-500/30 mono">QGIS INTEGRATION</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="changeMapLayer('ndvi')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition-colors">NDVI</button>
+                            <button onclick="changeMapLayer('umidade')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 transition-colors">Umidade</button>
+                            <button onclick="changeMapLayer('colheita')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 transition-colors">Colheita</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Simulated Map Grid -->
+                    <div class="relative h-[500px] bg-slate-900 p-4 overflow-hidden" id="map-container">
+                        <div class="scan-line"></div>
+                        
+                        <!-- Grid representing field zones -->
+                        <div class="grid grid-cols-8 grid-rows-6 gap-1 h-full w-full" id="field-grid">
+                            <!-- Generated by JS -->
+                        </div>
+                        
+                        <!-- Overlay Info -->
+                        <div class="absolute bottom-4 left-4 glass p-3 rounded-lg border border-slate-600 max-w-xs">
+                            <p class="text-xs text-slate-400 mb-1">COORDENADAS</p>
+                            <p class="text-sm mono text-green-400">22°43'12"S 47°38'45"W</p>
+                            <p class="text-xs text-slate-500 mt-1">Altitude: 642m | Inclinação: 2.3%</p>
+                        </div>
+                        
+                        <!-- Drones/IoT Markers -->
+                        <div class="absolute top-10 right-10 pulse-marker">
+                            <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg shadow-blue-500/50"></div>
+                        </div>
+                        <div class="absolute top-1/3 left-1/4 pulse-marker" style="animation-delay: 0.5s">
+                            <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg shadow-blue-500/50"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Legend -->
+                    <div class="flex gap-4 p-3 border-t border-slate-700/50 text-xs">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-500/60 rounded"></div><span class="text-slate-400">Ótimo (>0.8)</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500/60 rounded"></div><span class="text-slate-400">Atenção (0.6-0.8)</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500/60 rounded"></div><span class="text-slate-400">Crítico (<0.6)</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500/80 rounded border border-white"></div><span class="text-slate-400">Pronto Colheita</span></div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-5 rounded-xl">
+                        <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-brain text-purple-400"></i> Predição de Produtividade (ML)
+                        </h4>
+                        <canvas id="productivityChart" height="200"></canvas>
+                    </div>
+                    
+                    <div class="glass-panel p-5 rounded-xl">
+                        <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-cloud-sun text-yellow-400"></i> Condições Climáticas vs Umidade
+                        </h4>
+                        <canvas id="weatherChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Control Panel & Logs -->
+            <div class="space-y-6">
+                
+                <!-- System Status -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-server text-green-400"></i> Stack Tecnológico
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-java text-orange-400 text-xl"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-white">Java Backend</p>
+                                    <p class="text-xs text-slate-400">Spring Boot Microservices</p>
+                                </div>
+                            </div>
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-python text-blue-400 text-xl"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-white">Python Analytics</p>
+                                    <p class="text-xs text-slate-400">TensorFlow + Pandas</p>
+                                </div>
+                            </div>
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-map-marked-alt text-green-400 text-xl"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-white">QGIS Engine</p>
+                                    <p class="text-xs text-slate-400">Processamento Raster</p>
+                                </div>
+                            </div>
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-database text-cyan-400 text-xl"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-white">PostgreSQL/PostGIS</p>
+                                    <p class="text-xs text-slate-400">Dados Geoespaciais</p>
+                                </div>
+                            </div>
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Controls -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <h3 class="font-semibold text-white mb-4">Painel de Simulação</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 mb-1 block">Cenário Meteorológico</label>
+                            <select id="weather-scenario" onchange="runSimulation()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-green-500 outline-none">
+                                <option value="normal">Normal (Histórico 10 anos)</option>
+                                <option value="dry">Seca Prolongada (-30% precipitação)</option>
+                                <option value="wet">Excesso Chuvas (+40% umidade)</option>
+                                <option value="optimal">Condições Ótimas</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-slate-400 mb-1 block">Data Simulada</label>
+                            <input type="date" id="sim-date" value="2026-03-15" onchange="runSimulation()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-green-500 outline-none mono">
+                        </div>
+                        
+                        <button onclick="runSimulation()" class="w-full py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 group">
+                            <i class="fas fa-play group-hover:scale-110 transition-transform"></i>
+                            Executar Simulação
+                        </button>
+                    </div>
+                    
+                    <!-- Simulation Results -->
+                    <div id="sim-results" class="mt-4 p-4 bg-slate-800/30 rounded-lg border border-slate-700 hidden">
+                        <h4 class="text-sm font-semibold text-green-400 mb-2">Resultados da Simulação:</h4>
+                        <ul class="space-y-2 text-xs mono">
+                            <li class="flex justify-between"><span class="text-slate-400">Produtividade:</span> <span class="text-white" id="sim-prod">--</span></li>
+                            <li class="flex justify-between"><span class="text-slate-400">Umidade Final:</span> <span class="text-white" id="sim-umid">--</span></li>
+                            <li class="flex justify-between"><span class="text-slate-400">Data Ideal Colheita:</span> <span class="text-green-400" id="sim-date-res">--</span></li>
+                            <li class="flex justify-between"><span class="text-slate-400">Receita Estimada:</span> <span class="text-yellow-400" id="sim-rev">--</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Real-time Logs (Terminal Style) -->
+                <div class="glass-panel p-4 rounded-xl h-64 overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
+                        <h3 class="font-semibold text-white text-sm flex items-center gap-2">
+                            <i class="fas fa-terminal text-slate-400"></i> System Logs
+                        </h3>
+                        <span class="text-xs text-slate-500 mono">LIVE STREAM</span>
+                    </div>
+                    <div id="terminal-logs" class="flex-1 overflow-y-auto space-y-1 text-xs mono">
+                        <!-- Logs injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Alert Panel -->
+                <div class="glass-panel p-4 rounded-xl border-l-4 border-yellow-500">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-white text-sm">Alerta de Praga Detectado</h4>
+                            <p class="text-xs text-slate-400 mt-1">Lagarta-da-soja (Anticarsia gemmatalis) identificada em 3 subzonas. Recomendado monitoramento imediato.</p>
+                            <button class="mt-2 text-xs text-yellow-400 hover:text-yellow-300 underline">Ver relatório detalhado →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Preview Section (Marketing: Show the Tech) -->
+        <div class="mt-8 glass-panel rounded-2xl p-6 border border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-white flex items-center gap-2">
+                    <i class="fas fa-code text-blue-400"></i> 
+                    API Integration Preview - Python Analytics Engine
+                </h3>
+                <div class="flex gap-2">
+                    <span class="px-2 py-1 bg-slate-800 rounded text-xs text-slate-400 mono">analysis_engine.py</span>
+                    <button onclick="toggleCode()" class="text-xs text-slate-400 hover:text-white">
+                        <i class="fas fa-eye"></i> Mostrar/Ocultar
+                    </button>
+                </div>
+            </div>
+            
+            <div id="code-preview" class="code-block p-4 rounded-lg overflow-x-auto text-sm mono text-slate-300">
+<pre><span class="text-purple-400">import</span> pandas <span class="text-purple-400">as</span> pd
+<span class="text-purple-400">import</span> numpy <span class="text-purple-400">as</span> np
+<span class="text-purple-400">from</span> tensorflow.keras.models <span class="text-purple-400">import</span> load_model
+<span class="text-purple-400">from</span> qgis.core <span class="text-purple-400">import</span> QgsRasterLayer, QgsProject
+
+<span class="text-green-400">class</span> <span class="text-yellow-400">SoybeanHarvestPredictor</span>:
+    <span class="text-blue-400">def</span> <span class="text-yellow-400">__init__</span>(self, field_id):
+        self.model = load_model(<span class="text-orange-300">'models/soy_yield_v3.h5'</span>)
+        self.field = QgsProject.instance().mapLayersByName(field_id)[<span class="text-orange-300">0</span>]
+    
+    <span class="text-blue-400">def</span> <span class="text-yellow-400">analyze_ndvi_trends</span>(self, ndvi_raster):
+        <span class="text-slate-500">"""Processa imagens de satélite para identificar zonas de produtividade"""</span>
+        ndvi_data = ndvi_raster.readAsArray()
+        zones = self._classify_zones(ndvi_data)
+        
+        <span class="text-blue-400">return</span> {
+            <span class="text-orange-300">'optimal_areas'</span>: zones[<span class="text-orange-300">'high'</span>],
+            <span class="text-orange-300">'yield_prediction'</span>: self.model.predict(zones),
+            <span class="text-orange-300">'harvest_window'</span>: self._calculate_optimal_date()
+        }
+    
+    <span class="text-blue-400">def</span> <span class="text-yellow-400">simulate_scenario</span>(self, weather_params):
+        <span class="text-slate-500">"""Simula cenários climáticos para decisão estratégica"""</span>
+        simulation = self.model.predict(weather_params)
+        <span class="text-blue-400">return</span> simulation</pre>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Charts
+        const ctx1 = document.getElementById('productivityChart').getContext('2d');
+        const ctx2 = document.getElementById('weatherChart').getContext('2d');
+
+        // Productivity Prediction Chart
+        const productivityChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Atual'],
+                datasets: [{
+                    label: 'Produtividade Real (sc/ha)',
+                    data: [45, 48, 52, 55, 57, 58, 58.4],
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Predição ML',
+                    data: [44, 47, 51, 54, 56.5, 58.2, 59.1],
+                    borderColor: '#a855f7',
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    pointStyle: 'circle'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#94a3b8' } } },
+                scales: {
+                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Weather vs Humidity Chart
+        const weatherChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
+                datasets: [{
+                    label: 'Precipitação (mm)',
+                    data: [12, 8, 15, 5, 20, 3, 0],
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    yAxisID: 'y'
+                }, {
+                    label: 'Umidade Grão (%)',
+                    data: [14.2, 14.0, 14.5, 13.8, 15.2, 13.5, 13.2],
+                    borderColor: '#eab308',
+                    type: 'line',
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#94a3b8' } } },
+                scales: {
+                    y: { 
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94a3b8' },
+                        position: 'left'
+                    },
+                    y1: { 
+                        grid: { drawOnChartArea: false }, 
+                        ticks: { color: '#eab308' },
+                        position: 'right',
+                        min: 10,
+                        max: 20
+                    },
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Generate Field Grid (Simulating QGIS Raster)
+        function generateFieldGrid() {
+            const grid = document.getElementById('field-grid');
+            const statuses = ['status-optimal', 'status-optimal', 'status-optimal', 'status-warning', 'status-critical', 'status-harvest'];
+            
+            for (let i = 0; i < 48; i++) {
+                const cell = document.createElement('div');
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                cell.className = `map-cell ${status} rounded relative group`;
+                cell.innerHTML = `
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="text-[10px] font-bold text-white bg-black/50 px-1 rounded">${(Math.random() * 0.4 + 0.6).toFixed(2)}</span>
+                    </div>
+                `;
+                cell.onclick = () => showZoneDetails(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function showZoneDetails(zoneId) {
+            logAction(`Análise detalhada solicitada para Zona ${zoneId + 1} - NDVI: 0.${Math.floor(Math.random() * 9 + 1)}`);
+        }
+
+        function changeMapLayer(type) {
+            const cells = document.querySelectorAll('.map-cell');
+            cells.forEach(cell => {
+                cell.className = 'map-cell rounded relative group';
+                if (type === 'ndvi') {
+                    const rand = Math.random();
+                    if (rand > 0.7) cell.classList.add('status-optimal');
+                    else if (rand > 0.4) cell.classList.add('status-warning');
+                    else cell.classList.add('status-critical');
+                } else if (type === 'umidade') {
+                    cell.style.background = `rgba(59, 130, 246, ${Math.random() * 0.5 + 0.2})`;
+                } else if (type === 'colheita') {
+                    cell.classList.add(Math.random() > 0.6 ? 'status-harvest' : 'status-optimal');
+                }
+            });
+            logAction(`Camada de mapa alterada: ${type.toUpperCase()} - Renderização QGIS concluída`);
+        }
+
+        // Terminal Logs
+        const logs = [
+            "[JAVA] Spring Boot API Gateway iniciado na porta 8080",
+            "[PYTHON] TensorFlow model loaded: soy_yield_v3.h5",
+            "[QGIS] Conexão PostGIS estabelecida - 1,240 hectares carregados",
+            "[IoT] Recebendo dados de 47 sensores de umidade",
+            "[ML] Predição atualizada: 58.4 sacas/ha (confiança: 94.2%)",
+            "[ALERT] Zona 12-B: Umidade abaixo do threshold (12.8%)",
+            "[DRONE] UAV-03 iniciando varredura NDVI - Bateria: 87%",
+            "[WEATHER] Dados meteorológicos atualizados: INMET API",
+            "[DB] PostgreSQL backup automático concluído",
+            "[ANALYSIS] Correlação NDVI x Produtividade: r=0.89"
+        ];
+
+        function addLog(message, type = 'info') {
+            const terminal = document.getElementById('terminal-logs');
+            const entry = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString('pt-BR', { hour12: false });
+            const colors = {
+                'info': 'text-slate-400',
+                'success': 'text-green-400',
+                'warning': 'text-yellow-400',
+                'error': 'text-red-400',
+                'python': 'text-blue-400',
+                'java': 'text-orange-400'
+            };
+            
+            entry.className = `flex gap-2 ${colors[type] || 'text-slate-400'} hover:bg-slate-800/50 p-1 rounded cursor-pointer`;
+            entry.innerHTML = `
+                <span class="text-slate-600">[${timestamp}]</span>
+                <span class="terminal-cursor">${message}</span>
+            `;
+            
+            terminal.appendChild(entry);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            if (terminal.children.length > 50) {
+                terminal.removeChild(terminal.firstChild);
+            }
+        }
+
+        function logAction(message) {
+            addLog(message, 'success');
+        }
+
+        // Auto-generate logs
+        let logIndex = 0;
+        setInterval(() => {
+            if (logIndex < logs.length) {
+                addLog(logs[logIndex], logIndex % 2 === 0 ? 'java' : 'python');
+                logIndex++;
+            } else {
+                const randomLogs = [
+                    "[IoT] Sensor TH-42 reportando: 24.5°C, 68% UR",
+                    "[ML] Re-treinamento de modelo agendado: 02:00 AM",
+                    "[QGIS] Raster analysis completed: 342MB processado",
+                    "[JAVA] Cache Redis atualizado: 1,240 registros",
+                    "[ALERT] Chuva detectada na Zona 8 - Colheita adiada",
+                    "[DRONE] UAV-07 pousando - Missão concluída"
+                ];
+                addLog(randomLogs[Math.floor(Math.random() * randomLogs.length)], 'info');
+            }
+        }, 2000);
+
+        // Simulation Engine
+        function runSimulation() {
+            const scenario = document.getElementById('weather-scenario').value;
+            const date = document.getElementById('sim-date').value;
+            const results = document.getElementById('sim-results');
+            
+            results.classList.remove('hidden');
+            results.classList.add('animate-pulse');
+            
+            setTimeout(() => {
+                results.classList.remove('animate-pulse');
+                
+                const scenarios = {
+                    'normal': { prod: '58.4 sc/ha', umid: '13.2%', date: '15/03/2026', rev: 'R$ 4.2M' },
+                    'dry': { prod: '42.1 sc/ha', umid: '11.8%', date: '10/03/2026', rev: 'R$ 3.1M' },
+                    'wet': { prod: '55.3 sc/ha', umid: '16.4%', date: '22/03/2026', rev: 'R$ 3.9M' },
+                    'optimal': { prod: '64.8 sc/ha', umid: '12.5%', date: '18/03/2026', rev: 'R$ 4.8M' }
+                };
+                
+                const res = scenarios[scenario];
+                document.getElementById('sim-prod').textContent = res.prod;
+                document.getElementById('sim-umid').textContent = res.umid;
+                document.getElementById('sim-date-res').textContent = res.date;
+                document.getElementById('sim-rev').textContent = res.rev;
+                
+                logAction(`Simulação executada: Cenário ${scenario.toUpperCase()} - Python Analytics Engine v2.4`);
+            }, 1000);
+        }
+
+        function toggleCode() {
+            const code = document.getElementById('code-preview');
+            code.classList.toggle('hidden');
+        }
+
+        function toggleDemoMode() {
+            logAction("DEMO MODE ATIVADO - Dados em tempo real habilitados", 'warning');
+            // Start random map updates
+            setInterval(() => {
+                const randomCell = Math.floor(Math.random() * 48);
+                const cells = document.querySelectorAll('.map-cell');
+                cells[randomCell].classList.toggle('pulse-marker');
+                setTimeout(() => cells[randomCell].classList.toggle('pulse-marker'), 2000);
+            }, 5000);
+        }
+
+        // Initialize
+        generateFieldGrid();
+        
+        // Initial logs
+        setTimeout(() => addLog("CAMPIFITECH AgroTech Platform v2.4.1 iniciado", 'success'), 500);
+        setTimeout(() => addLog("Conectando ao cluster Java Spring Boot...", 'java'), 1000);
+        setTimeout(() => addLog("Python analytics engine: ONLINE", 'python'), 1500);
+    </script>
+</body>
+</html>
