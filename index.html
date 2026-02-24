@@ -17,10 +17,10 @@
                     },
                     colors: {
                         campifi: {
-                            green: '#00FF88',      /* Verde vivo neon */
-                            light: '#39FF14',      /* Verde limão brilhante */
-                            cream: '#FFFDD0',      /* Creme claro */
-                            dark: '#00C853',       /* Verde escuro */
+                            green: '#00FF88',
+                            light: '#39FF14',
+                            cream: '#FFFDD0',
+                            dark: '#00C853',
                         },
                         agri: {
                             50: '#f0fdf4',
@@ -103,7 +103,7 @@
             clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
         }
         
-        /* Menu hover effects - Verde claro para mais brilhante */
+        /* Menu hover effects */
         .nav-link {
             position: relative;
             font-size: 1.25rem;
@@ -138,7 +138,70 @@
             width: 100%;
         }
         
-        /* Transform text - Aparece no hover */
+        /* Botão especial Gestão Soja */
+        .btn-gestao {
+            position: relative;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 0.5rem 1.25rem;
+            background: linear-gradient(135deg, #00FF88 0%, #39FF14 100%);
+            color: #0f172a;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+        .btn-gestao:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
+            filter: brightness(1.1);
+        }
+        .btn-gestao i {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Dropdown menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dropdown-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+        .dropdown-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00FF88;
+        }
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 0.5rem;
+        }
+        
+        /* Transform text effects */
         .transform-wrapper {
             position: relative;
             display: inline-block;
@@ -201,11 +264,52 @@
                     </span>
                 </div>
                 
-                <div class="hidden md:flex space-x-8 items-center">
+                <!-- MENU PRINCIPAL COM DROPDOWN -->
+                <div class="hidden md:flex space-x-6 items-center">
                     <a href="#home" class="nav-link">Home</a>
-                    <a href="#servicos" class="nav-link">Serviços</a>
+                    
+                    <!-- DROPDOWN SERVIÇOS -->
+                    <div class="dropdown relative">
+                        <a href="#servicos" class="nav-link flex items-center gap-2">
+                            Serviços
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </a>
+                        <!-- MENU DROPDOWN -->
+                        <div class="dropdown-menu">
+                            <a href="Gestao_Soja.html" class="dropdown-item">
+                                <i class="fas fa-leaf text-green-400"></i>
+                                <strong>Gestão de Soja</strong>
+                                <span class="block text-xs text-slate-400 mt-1">Dashboard completo</span>
+                            </a>
+                            <a href="#agricultura" class="dropdown-item">
+                                <i class="fas fa-tractor text-blue-400"></i>
+                                Agricultura de Precisão
+                            </a>
+                            <a href="#pecuaria" class="dropdown-item">
+                                <i class="fas fa-cow text-yellow-400"></i>
+                                Pecuária Inteligente
+                            </a>
+                            <a href="#drones" class="dropdown-item">
+                                <i class="fas fa-drone text-purple-400"></i>
+                                Mapeamento Aéreo
+                            </a>
+                            <div class="border-t border-slate-700 my-2"></div>
+                            <a href="#todos-servicos" class="dropdown-item text-campifi-green">
+                                <i class="fas fa-th-large"></i>
+                                Ver todos os serviços
+                            </a>
+                        </div>
+                    </div>
+                    
                     <a href="#tecnologia" class="nav-link">Tecnologia</a>
                     <a href="#sobre" class="nav-link">Sobre</a>
+                    
+                    <!-- BOTÃO DESTAQUE GESTÃO SOJA -->
+                    <a href="Gestao_Soja.html" class="btn-gestao">
+                        <i class="fas fa-chart-line"></i>
+                        Gestão Soja
+                    </a>
+                    
                     <a href="#contato" class="px-6 py-2 bg-gradient-to-r from-campifi-green to-campifi-light text-slate-900 rounded-full font-bold hover:shadow-lg hover:shadow-green-500/50 transition-all transform hover:scale-105">
                         Contato
                     </a>
@@ -221,10 +325,28 @@
         <div id="mobile-menu" class="hidden md:hidden glass-dark absolute w-full">
             <div class="px-4 pt-2 pb-6 space-y-2">
                 <a href="#home" class="block px-3 py-2 mobile-nav-link">Home</a>
-                <a href="#servicos" class="block px-3 py-2 mobile-nav-link">Serviços</a>
+                
+                <!-- Mobile: Serviços com submenu -->
+                <div class="px-3 py-2">
+                    <span class="mobile-nav-link block mb-2">Serviços</span>
+                    <div class="pl-4 space-y-2">
+                        <a href="Gestao_Soja.html" class="block py-2 text-green-400 font-semibold">
+                            <i class="fas fa-leaf mr-2"></i>Gestão de Soja
+                        </a>
+                        <a href="#agricultura" class="block py-2 text-slate-300 text-sm">Agricultura</a>
+                        <a href="#pecuaria" class="block py-2 text-slate-300 text-sm">Pecuária</a>
+                    </div>
+                </div>
+                
                 <a href="#tecnologia" class="block px-3 py-2 mobile-nav-link">Tecnologia</a>
                 <a href="#sobre" class="block px-3 py-2 mobile-nav-link">Sobre</a>
-                <a href="#contato" class="block px-3 py-2 text-campifi-green font-bold text-lg">Contato</a>
+                
+                <!-- Mobile: Botão Gestão Soja -->
+                <a href="Gestao_Soja.html" class="block mx-3 mt-4 py-3 bg-gradient-to-r from-campifi-green to-campifi-light text-slate-900 rounded-lg font-bold text-center">
+                    <i class="fas fa-chart-line mr-2"></i>Acessar Gestão Soja
+                </a>
+                
+                <a href="#contato" class="block px-3 py-2 text-campifi-green font-bold text-lg mt-4">Contato</a>
             </div>
         </div>
     </nav>
@@ -260,12 +382,13 @@
                     </p>
 
                     <div class="flex flex-wrap gap-4">
-                        <a href="#servicos" class="px-8 py-4 bg-gradient-to-r from-campifi-green to-campifi-light text-slate-900 rounded-full font-bold hover:shadow-xl hover:shadow-green-500/50 transition-all flex items-center gap-2 group">
-                            Explorar Soluções
+                        <a href="Gestao_Soja.html" class="px-8 py-4 bg-gradient-to-r from-campifi-green to-campifi-light text-slate-900 rounded-full font-bold hover:shadow-xl hover:shadow-green-500/50 transition-all flex items-center gap-2 group">
+                            <i class="fas fa-chart-line"></i>
+                            Acessar Gestão Soja
                             <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                         </a>
-                        <a href="#contato" class="px-8 py-4 border-2 border-campifi-green text-campifi-green rounded-full font-bold hover:bg-campifi-green hover:text-slate-900 transition-all">
-                            Fale Conosco
+                        <a href="#servicos" class="px-8 py-4 border-2 border-campifi-green text-campifi-green rounded-full font-bold hover:bg-campifi-green hover:text-slate-900 transition-all">
+                            Explorar Soluções
                         </a>
                     </div>
 
@@ -340,6 +463,39 @@
                     Oferecemos tecnologia de ponta para maximizar resultados tanto na agricultura quanto na pecuária, 
                     com soluções personalizadas para cada tipo de operação.
                 </p>
+            </div>
+
+            <!-- CARD DESTAQUE GESTÃO SOJA -->
+            <div class="mb-8">
+                <a href="Gestao_Soja.html" class="block group">
+                    <div class="bg-gradient-to-r from-campifi-green/20 to-campifi-light/20 rounded-2xl p-8 border-2 border-campifi-green/30 hover:border-campifi-green transition-all hover:shadow-xl hover:shadow-green-500/20">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-6">
+                                <div class="w-20 h-20 bg-gradient-to-br from-campifi-green to-campifi-light rounded-2xl flex items-center justify-center text-slate-900 text-3xl shadow-lg">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Gestão de Soja - Dashboard</h3>
+                                    <p class="text-slate-600">Acesse nosso sistema completo de monitoramento em tempo real. Acompanhe produtividade, umidade, temperatura e controle de velocidade do motor.</p>
+                                    <div class="flex gap-4 mt-3">
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                                            <i class="fas fa-bolt mr-1"></i>Tempo Real
+                                        </span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                                            <i class="fas fa-robot mr-1"></i>IoT
+                                        </span>
+                                        <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                                            <i class="fas fa-brain mr-1"></i>Machine Learning
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-campifi-green text-4xl group-hover:translate-x-2 transition-transform">
+                                <i class="fas fa-arrow-circle-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8">
@@ -575,32 +731,33 @@
         </div>
     </section>
 
-<!-- CTA Section -->
-<section class="py-24 bg-gradient-to-br from-emerald-400 via-green-400 to-lime-400 relative overflow-hidden">
-    <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.2%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
-    
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-        <h2 class="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Pronto para 
-            <span class="relative inline-block mx-2">
-                <span class="text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] font-extrabold tracking-wide">Transformar</span>
-            </span> 
-            sua Produção?
-        </h2>
-        <p class="text-xl text-slate-800 mb-10 max-w-2xl mx-auto font-medium drop-shadow-sm">
-            Entre em contato hoje mesmo e descubra como nossas soluções podem aumentar sua produtividade e reduzir custos operacionais.
-        </p>
-        <div class="flex flex-wrap justify-center gap-4">
-            <a href="#contato" class="px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105">
-                Solicitar Orçamento
-            </a>
-            <a href="tel:+5500000000000" class="px-8 py-4 border-2 border-slate-900 text-slate-900 rounded-full font-bold text-lg hover:bg-slate-900 hover:text-white transition-all flex items-center gap-2 hover:scale-105">
-                <i class="fas fa-phone"></i>
-                Ligar Agora
-            </a>
+    <!-- CTA Section -->
+    <section class="py-24 bg-gradient-to-br from-emerald-400 via-green-400 to-lime-400 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.2%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+        
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+            <h2 class="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+                Pronto para 
+                <span class="relative inline-block mx-2">
+                    <span class="text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] font-extrabold tracking-wide">Transformar</span>
+                </span> 
+                sua Produção?
+            </h2>
+            <p class="text-xl text-slate-800 mb-10 max-w-2xl mx-auto font-medium drop-shadow-sm">
+                Entre em contato hoje mesmo e descubra como nossas soluções podem aumentar sua produtividade e reduzir custos operacionais.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="Gestao_Soja.html" class="px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-chart-line"></i>
+                    Acessar Gestão Soja
+                </a>
+                <a href="#contato" class="px-8 py-4 border-2 border-slate-900 text-slate-900 rounded-full font-bold text-lg hover:bg-slate-900 hover:text-white transition-all flex items-center gap-2 hover:scale-105">
+                    <i class="fas fa-phone"></i>
+                    Falar com Especialista
+                </a>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
     
     <!-- Contact Section -->
     <section id="contato" class="py-24 bg-white">
@@ -727,6 +884,7 @@
                     <h4 class="text-white font-bold mb-4">Links Rápidos</h4>
                     <ul class="space-y-2">
                         <li><a href="#home" class="hover:text-campifi-green transition-colors">Home</a></li>
+                        <li><a href="Gestao_Soja.html" class="hover:text-campifi-green transition-colors font-semibold text-green-400">Gestão Soja</a></li>
                         <li><a href="#servicos" class="hover:text-campifi-green transition-colors">Serviços</a></li>
                         <li><a href="#tecnologia" class="hover:text-campifi-green transition-colors">Tecnologia</a></li>
                         <li><a href="#sobre" class="hover:text-campifi-green transition-colors">Sobre</a></li>
