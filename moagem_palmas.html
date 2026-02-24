@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAMPIFITECH | Sistema Industrial de Moagem de Palma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Industrial UI Elements */
+        .indicator-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+            transition: all 0.3s ease;
+        }
+        .indicator-green { background: #22c55e; color: #22c55e; }
+        .indicator-yellow { background: #eab308; color: #eab308; }
+        .indicator-red { background: #ef4444; color: #ef4444; }
+        .indicator-blue { background: #3b82f6; color: #3b82f6; }
+        
+        /* Motor Control Dial */
+        .dial-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        .dial-bg {
+            fill: none;
+            stroke: #334155;
+            stroke-width: 20;
+        }
+        .dial-progress {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 20;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        /* Speed Buttons */
+        .speed-btn {
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .speed-btn:active { transform: scale(0.95); }
+        .speed-btn.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+            border-color: #22c55e;
+        }
+        
+        /* Glass Panels */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .pulse-marker::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinning { animation: rotate 2s linear infinite; }
+        .spinning-slow { animation: rotate 8s linear infinite; }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            appearance: none;
+            width: 60px;
+            height: 30px;
+            background: #475569;
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch:checked {
+            background: #22c55e;
+        }
+        .toggle-switch:checked::after {
+            transform: translateX(30px);
+        }
+        
+        /* Emergency Stop */
+        .emergency-btn {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            box-shadow: 0 4px 0 #7f1d1d, 0 10px 20px rgba(220, 38, 38, 0.4);
+            transition: all 0.1s;
+        }
+        .emergency-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #7f1d1d, 0 2px 10px rgba(220, 38, 38, 0.4);
+        }
+        
+        /* Grid Background */
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(34, 197, 94, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 197, 94, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #22c55e;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+            margin-top: -8px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #334155;
+            border-radius: 2px;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-grid min-h-screen">
+
+    <!-- Header -->
+    <header class="glass-panel fixed w-full z-50 px-6 py-4 border-b border-slate-700/50">
+        <div class="max-w-[1600px] mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-700 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
+                    <i class="fas fa-cog spinning-slow text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-2xl text-white tracking-tight">CAMPIFI<span class="text-green-400">TECH</span></h1>
+                    <p class="text-xs text-slate-400 mono">SISTEMA INDUSTRIAL DE MOAGEM v3.2.1</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <!-- System Status -->
+                <div class="flex items-center gap-3 px-4 py-2 bg-slate-800/50 rounded-full border border-slate-700">
+                    <div class="indicator-light indicator-green pulse-marker"></div>
+                    <span class="text-sm text-slate-300 mono">SISTEMA OPERACIONAL</span>
+                </div>
+                
+                <!-- Connection Status -->
+                <div class="flex items-center gap-2 text-xs mono">
+                    <i class="fas fa-wifi text-green-400"></i>
+                    <span class="text-slate-400">CLP-01</span>
+                    <span class="text-green-400">ONLINE</span>
+                </div>
+                
+                <!-- Date Time -->
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-white mono" id="clock">00:00:00</p>
+                    <p class="text-xs text-slate-500" id="date">--/--/----</p>
+                </div>
+                
+                <!-- Emergency Stop -->
+                <button onclick="emergencyStop()" class="emergency-btn px-6 py-3 rounded-xl text-white font-bold flex items-center gap-2 hover:brightness-110">
+                    <i class="fas fa-stop-circle text-xl"></i>
+                    PARADA EMERGÊNCIA
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-28 pb-8 px-4 max-w-[1600px] mx-auto">
+        
+        <!-- Top Control Bar -->
+        <div class="glass-panel rounded-2xl p-6 mb-6 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                
+                <!-- Motor Control -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-microchip text-blue-400"></i> Controle de Velocidade
+                    </h3>
+                    
+                    <div class="flex gap-3 mb-4">
+                        <button onclick="setSpeed(1)" id="speed-1" class="speed-btn px-6 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white font-bold hover:bg-slate-700">
+                            V1<br><span class="text-xs text-slate-400 mono">72 RPM</span>
+                        </button>
+                        <button onclick="setSpeed(2)" id="speed-2" class="speed-btn px-6 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white font-bold hover:bg-slate-700">
+                            V2<br><span class="text-xs text-slate-400 mono">144 RPM</span>
+                        </button>
+                        <button onclick="setSpeed(3)" id="speed-3" class="speed-btn px-6 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white font-bold hover:bg-slate-700">
+                            V3<br><span class="text-xs text-slate-400 mono">216 RPM</span>
+                        </button>
+                        <button onclick="setSpeed(4)" id="speed-4" class="speed-btn px-6 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white font-bold hover:bg-slate-700">
+                            V4<br><span class="text-xs text-slate-400 mono">288 RPM</span>
+                        </button>
+                        <button onclick="setSpeed(5)" id="speed-5" class="speed-btn px-6 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white font-bold hover:bg-slate-700">
+                            V5<br><span class="text-xs text-slate-400 mono">360 RPM</span>
+                        </button>
+                    </div>
+                    
+                    <div class="w-full px-4">
+                        <div class="flex justify-between text-xs text-slate-400 mb-2 mono">
+                            <span>20%</span>
+                            <span>VELOCIDADE MANUAL</span>
+                            <span>100%</span>
+                        </div>
+                        <input type="range" min="20" max="100" value="100" id="speed-slider" oninput="manualSpeed(this.value)" class="w-full">
+                    </div>
+                </div>
+
+                <!-- Motor Visualization -->
+                <div class="flex justify-center">
+                    <div class="dial-container">
+                        <svg viewBox="0 0 200 200" class="w-full h-full transform -rotate-90">
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="dial-bg" cx="100" cy="100" r="80"></circle>
+                            <circle id="dial-progress" class="dial-progress" cx="100" cy="100" r="80" 
+                                    stroke-dasharray="502" stroke-dashoffset="0"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <i id="motor-icon" class="fas fa-cog text-4xl text-slate-600 mb-2"></i>
+                            <span id="rpm-display" class="text-4xl font-bold text-white mono">360</span>
+                            <span class="text-sm text-slate-400">RPM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="indicator-light indicator-blue"></div>
+                            <span class="text-xs text-slate-400">MOTOR REDUTOR</span>
+                        </div>
+                        <p class="text-2xl font-bold text-white mono">1:15</p>
+                        <p class="text-xs text-slate-500">Relação de redução</p>
+                    </div>
+                    
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="indicator-light indicator-green"></div>
+                            <span class="text-xs text-slate-400">SAÍDA EIXO</span>
+                        </div>
+                        <p class="text-2xl font-bold text-white mono" id="output-rpm">24</p>
+                        <p class="text-xs text-slate-500">RPM final</p>
+                    </div>
+                    
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="indicator-light indicator-yellow"></div>
+                            <span class="text-xs text-slate-400">TORQUE ESTIMADO</span>
+                        </div>
+                        <p class="text-2xl font-bold text-white mono" id="torque-display">285</p>
+                        <p class="text-xs text-slate-500">Nm (Newton-metro)</p>
+                    </div>
+                    
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="indicator-light indicator-green"></div>
+                            <span class="text-xs text-slate-400">EFICIÊNCIA</span>
+                        </div>
+                        <p class="text-2xl font-bold text-white mono">94.2%</p>
+                        <p class="text-xs text-slate-500">Rendimento sistema</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Real-time Sensors -->
+            <div class="space-y-6">
+                
+                <!-- Current/Carga -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-bolt text-yellow-400"></i> Carga do Motor
+                        </h3>
+                        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded border border-green-500/30 mono">NORMAL</span>
+                    </div>
+                    
+                    <div class="flex items-end gap-2 mb-4">
+                        <span id="current-display" class="text-5xl font-bold text-white mono">12.4</span>
+                        <span class="text-xl text-slate-400 mb-1">A</span>
+                    </div>
+                    
+                    <!-- Current Bar -->
+                    <div class="w-full bg-slate-800 rounded-full h-4 mb-2 overflow-hidden">
+                        <div id="current-bar" class="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full transition-all duration-500" style="width: 45%"></div>
+                    </div>
+                    
+                    <div class="flex justify-between text-xs text-slate-500 mono">
+                        <span>0A</span>
+                        <span>LIMITE: 25A</span>
+                        <span>30A</span>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-400">Potência Ativa:</span>
+                            <span class="text-white mono font-semibold" id="power-display">8.2 kW</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-400">Fator de Potência:</span>
+                            <span class="text-white mono font-semibold">0.92</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Temperature -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-thermometer-half text-red-400"></i> Temperatura
+                        </h3>
+                        <div class="flex gap-2">
+                            <span class="px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded mono">MOTOR</span>
+                            <span class="px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded mono">ROLAMENTO</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-400">Motor Elétrico</span>
+                                <span class="text-lg font-bold text-white mono" id="temp-motor">68°C</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="h-full bg-gradient-to-r from-green-500 to-red-500 rounded-full transition-all" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-400">Motoredutor</span>
+                                <span class="text-lg font-bold text-white mono" id="temp-redutor">52°C</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full transition-all" style="width: 52%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-400">Rolamentos Eixo</span>
+                                <span class="text-lg font-bold text-white mono" id="temp-rolamento">45°C</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="h-full bg-green-500 rounded-full transition-all" style="width: 45%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Humidity Sensor -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-tint text-blue-400"></i> Umidade Palma
+                        </h3>
+                        <span class="text-xs text-slate-500">Sensor capacitivo</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center border-2 border-blue-500/50">
+                            <i class="fas fa-water text-2xl text-blue-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-4xl font-bold text-white mono" id="humidity-display">72</p>
+                            <p class="text-sm text-slate-400">% Umidade</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                        <p class="text-xs text-blue-300 flex items-center gap-2">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="humidity-status">Umidade alta - Reduzir velocidade recomendado</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Column: Production Scale -->
+            <div class="space-y-6">
+                
+                <!-- Main Scale Display -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl"></div>
+                    
+                    <div class="relative">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-semibold text-white flex items-center gap-2">
+                                <i class="fas fa-weight-hanging text-green-400"></i> Balança Industrial
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <div class="indicator-light indicator-green animate-pulse"></div>
+                                <span class="text-xs text-slate-400 mono">CALIBRADA</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Main Weight Display -->
+                        <div class="text-center mb-6">
+                            <p class="text-sm text-slate-400 mb-1">PRODUÇÃO INSTANTÂNEA</p>
+                            <div class="flex items-baseline justify-center gap-2">
+                                <span id="weight-display" class="text-6xl font-bold text-white mono tracking-tighter">0.0</span>
+                                <span class="text-2xl text-slate-400">kg</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">Célula de carga HX711 - 500kg</p>
+                        </div>
+                        
+                        <!-- Production Rates -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
+                                <p class="text-xs text-slate-400 mb-1">PRODUÇÃO / MINUTO</p>
+                                <p class="text-2xl font-bold text-green-400 mono" id="kg-min">0</p>
+                                <p class="text-xs text-slate-500">kg/min</p>
+                            </div>
+                            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
+                                <p class="text-xs text-slate-400 mb-1">PRODUÇÃO / HORA</p>
+                                <p class="text-2xl font-bold text-green-400 mono" id="kg-hour">0</p>
+                                <p class="text-xs text-slate-500">kg/h</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Session Stats -->
+                        <div class="space-y-2 p-4 bg-slate-800/30 rounded-xl border border-slate-700">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">Total Turno (8h):</span>
+                                <span class="text-white mono font-semibold" id="total-shift">0 kg</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">Média Hora:</span>
+                                <span class="text-white mono font-semibold" id="avg-hour">0 kg/h</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">Tempo Operação:</span>
+                                <span class="text-white mono font-semibold" id="oper-time">00:00:00</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Scale Controls -->
+                        <div class="flex gap-2 mt-4">
+                            <button onclick="tareScale()" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors">
+                                <i class="fas fa-balance-scale mr-2"></i>Tara
+                            </button>
+                            <button onclick="resetProduction()" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors">
+                                <i class="fas fa-redo mr-2"></i>Reset
+                            </button>
+                            <button onclick="exportData()" class="flex-1 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium transition-colors">
+                                <i class="fas fa-download mr-2"></i>Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Production Chart -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-area text-purple-400"></i> Histórico de Produção
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="productionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Alerts Panel -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-bell text-yellow-400"></i> Alertas do Sistema
+                    </h3>
+                    <div id="alerts-container" class="space-y-2 max-h-40 overflow-y-auto">
+                        <div class="p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-start gap-3">
+                            <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                            <div>
+                                <p class="text-sm text-white font-medium">Sistema iniciado</p>
+                                <p class="text-xs text-slate-400">Todos os sensores operacionais</p>
+                            </div>
+                            <span class="text-xs text-slate-500 ml-auto">10:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: System Log & Settings -->
+            <div class="space-y-6">
+                
+                <!-- System Log (Terminal Style) -->
+                <div class="glass-panel rounded-2xl p-1 border border-slate-700 h-96 flex flex-col">
+                    <div class="flex justify-between items-center p-3 border-b border-slate-700 bg-slate-800/50 rounded-t-xl">
+                        <h3 class="font-semibold text-white text-sm flex items-center gap-2">
+                            <i class="fas fa-terminal text-slate-400"></i> Log do Sistema
+                        </h3>
+                        <div class="flex gap-2">
+                            <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-white">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <span class="text-xs text-slate-500 mono">LIVE</span>
+                        </div>
+                    </div>
+                    <div id="system-log" class="flex-1 overflow-y-auto p-3 space-y-1 text-xs mono bg-slate-900/50 rounded-b-xl">
+                        <!-- Logs injected here -->
+                    </div>
+                </div>
+
+                <!-- Motor Specifications -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-cogs text-slate-400"></i> Especificações Técnicas
+                    </h3>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between py-2 border-b border-slate-700">
+                            <span class="text-slate-400">Motor</span>
+                            <span class="text-white mono">WEG 10 CV - 360 RPM</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700">
+                            <span class="text-slate-400">Motoredutor</span>
+                            <span class="text-white mono">Helicoidal 1:15</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700">
+                            <span class="text-slate-400">Eixo Saída</span>
+                            <span class="text-white mono">Ø45mm - Helicoidal</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700">
+                            <span class="text-slate-400">Inversor</span>
+                            <span class="text-white mono">WEG CFW500 - 15CV</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700">
+                            <span class="text-slate-400">CLP</span>
+                            <span class="text-white mono">Siemens S7-1200</span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="text-slate-400">Comunicação</span>
+                            <span class="text-white mono">Modbus TCP/IP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <h3 class="font-semibold text-white mb-4">Ações Rápidas</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="toggleMode()" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-white text-sm transition-all flex flex-col items-center gap-2">
+                            <i class="fas fa-robot text-blue-400 text-xl"></i>
+                            <span>Modo Auto</span>
+                        </button>
+                        <button onclick="calibrateSensors()" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-white text-sm transition-all flex flex-col items-center gap-2">
+                            <i class="fas fa-sliders-h text-green-400 text-xl"></i>
+                            <span>Calibrar</span>
+                        </button>
+                        <button onclick="maintenanceMode()" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-white text-sm transition-all flex flex-col items-center gap-2">
+                            <i class="fas fa-wrench text-yellow-400 text-xl"></i>
+                            <span>Manutenção</span>
+                        </button>
+                        <button onclick="viewReports()" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-white text-sm transition-all flex flex-col items-center gap-2">
+                            <i class="fas fa-file-alt text-purple-400 text-xl"></i>
+                            <span>Relatórios</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // System State
+        let currentSpeed = 5; // 1-5
+        let currentRPM = 360;
+        let isRunning = true;
+        let autoMode = false;
+        let totalProduction = 0;
+        let operationStartTime = Date.now();
+        let productionHistory = [];
+        let lastWeight = 0;
+        let weightHistory = [];
+        
+        // Speed configurations (20%, 40%, 60%, 80%, 100% of 360 RPM)
+        const speedConfig = {
+            1: { rpm: 72, label: '20%', torque: 1425 },
+            2: { rpm: 144, label: '40%', torque: 712 },
+            3: { rpm: 216, label: '60%', torque: 475 },
+            4: { rpm: 288, label: '80%', torque: 356 },
+            5: { rpm: 360, label: '100%', torque: 285 }
+        };
+
+        // Initialize Charts
+        const prodCtx = document.getElementById('productionChart').getContext('2d');
+        const productionChart = new Chart(prodCtx, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill('').map((_, i) => `${i*3}s`),
+                datasets: [{
+                    label: 'Produção (kg/min)',
+                    data: Array(20).fill(0),
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94a3b8' },
+                        beginAtZero: true
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#94a3b8', maxTicksLimit: 5 }
+                    }
+                }
+            }
+        });
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR');
+            document.getElementById('date').textContent = now.toLocaleDateString('pt-BR');
+            
+            // Update operation time
+            const diff = Math.floor((Date.now() - operationStartTime) / 1000);
+            const hours = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            const seconds = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('oper-time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+
+        // Speed Control
+        function setSpeed(level) {
+            // Remove active from all
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`speed-${i}`).classList.remove('active');
+            }
+            
+            // Add active to selected
+            document.getElementById(`speed-${level}`).classList.add('active');
+            
+            currentSpeed = level;
+            currentRPM = speedConfig[level].rpm;
+            
+            updateMotorDisplay();
+            addLog(`Velocidade alterada para V${level} - ${currentRPM} RPM`, 'info');
+            
+            // Send to API (simulated)
+            console.log(`API CALL: SET_SPEED=${currentRPM}`);
+        }
+
+        function manualSpeed(value) {
+            currentRPM = Math.round(360 * (value / 100));
+            updateMotorDisplay();
+            
+            // Clear button selection
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`speed-${i}`).classList.remove('active');
+            }
+        }
+
+        function updateMotorDisplay() {
+            // Update RPM display
+            document.getElementById('rpm-display').textContent = currentRPM;
+            document.getElementById('speed-slider').value = (currentRPM / 360) * 100;
+            
+            // Update dial (SVG circumference = 2 * PI * 80 ≈ 502)
+            const circumference = 502;
+            const offset = circumference - (currentRPM / 360) * circumference;
+            document.getElementById('dial-progress').style.strokeDashoffset = offset;
+            
+            // Update output RPM (with 1:15 reduction)
+            const outputRPM = Math.round(currentRPM / 15);
+            document.getElementById('output-rpm').textContent = outputRPM;
+            
+            // Update torque (inverse relationship)
+            const torque = Math.round(102000 / currentRPM); // Simplified calculation
+            document.getElementById('torque-display').textContent = torque;
+            
+            // Animate motor icon if running
+            const motorIcon = document.getElementById('motor-icon');
+            if (isRunning && currentRPM > 0) {
+                motorIcon.classList.add('spinning');
+                motorIcon.style.animationDuration = `${360/currentRPM}s`;
+            } else {
+                motorIcon.classList.remove('spinning');
+            }
+        }
+
+        // Emergency Stop
+        function emergencyStop() {
+            isRunning = false;
+            currentRPM = 0;
+            updateMotorDisplay();
+            
+            addLog('PARADA DE EMERGÊNCIA ATIVADA', 'error');
+            alert('SISTEMA PARADO - Verifique equipamento antes de reiniciar');
+            
+            // Visual feedback
+            document.body.style.animation = 'shake 0.5s';
+            setTimeout(() => document.body.style.animation = '', 500);
+        }
+
+        // Scale Functions
+        function tareScale() {
+            lastWeight = 0;
+            addLog('Balança tarada - Zero ajustado', 'info');
+        }
+
+        function resetProduction() {
+            totalProduction = 0;
+            productionHistory = [];
+            operationStartTime = Date.now();
+            addLog('Contadores de produção resetados', 'warning');
+        }
+
+        function exportData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                totalProduction: totalProduction,
+                avgProduction: document.getElementById('avg-hour').textContent,
+                operationTime: document.getElementById('oper-time').textContent,
+                motorData: {
+                    rpm: currentRPM,
+                    current: document.getElementById('current-display').textContent,
+                    temperature: document.getElementById('temp-motor').textContent
+                }
+            };
+            
+            console.log('Exporting:', data);
+            addLog('Dados exportados para CSV', 'success');
+        }
+
+        // Sensor Simulation
+        function simulateSensors() {
+            if (!isRunning) return;
+            
+            // Current based on load (higher RPM = higher current, but with variation)
+            const baseCurrent = 8 + (currentRPM / 360) * 10;
+            const current = (baseCurrent + Math.random() * 4 - 2).toFixed(1);
+            document.getElementById('current-display').textContent = current;
+            document.getElementById('current-bar').style.width = `${(current / 30) * 100}%`;
+            
+            // Power calculation (P = V * I * PF * √3 / 1000)
+            const power = (380 * current * 0.92 * 1.732 / 1000).toFixed(1);
+            document.getElementById('power-display').textContent = `${power} kW`;
+            
+            // Temperatures (increase with current)
+            const tempMotor = Math.min(85, 45 + (current * 1.5) + Math.random() * 3).toFixed(0);
+            const tempRedutor = Math.min(70, 35 + (current * 1.2) + Math.random() * 2).toFixed(0);
+            const tempRolamento = Math.min(60, 30 + (current * 0.8) + Math.random() * 2).toFixed(0);
+            
+            document.getElementById('temp-motor').textContent = `${tempMotor}°C`;
+            document.getElementById('temp-redutor').textContent = `${tempRedutor}°C`;
+            document.getElementById('temp-rolamento').textContent = `${tempRolamento}°C`;
+            
+            // Color coding for temperatures
+            document.getElementById('temp-motor').className = `text-lg font-bold mono ${tempMotor > 75 ? 'text-red-400' : tempMotor > 65 ? 'text-yellow-400' : 'text-white'}`;
+            
+            // Humidity (affects production quality)
+            const humidity = Math.min(95, 60 + Math.random() * 20 + (currentRPM > 300 ? 5 : 0)).toFixed(0);
+            document.getElementById('humidity-display').textContent = humidity;
+            
+            const humidityStatus = document.getElementById('humidity-status');
+            if (humidity > 80) {
+                humidityStatus.textContent = 'Umidade CRÍTICA - Reduzir velocidade imediatamente';
+                humidityStatus.parentElement.className = 'p-3 bg-red-500/10 rounded-lg border border-red-500/20';
+                if (autoMode && currentRPM > 144) setSpeed(2);
+            } else if (humidity > 70) {
+                humidityStatus.textContent = 'Umidade alta - Monitorar produção';
+                humidityStatus.parentElement.className = 'p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20';
+            } else {
+                humidityStatus.textContent = 'Umidade ideal para moagem';
+                humidityStatus.parentElement.className = 'p-3 bg-blue-500/10 rounded-lg border border-blue-500/20';
+            }
+            
+            // Weight simulation (production)
+            const productionRate = (currentRPM / 360) * 850 * (1 - (humidity - 60) / 200); // kg/h
+            const instantWeight = (productionRate / 3600 * 3).toFixed(1); // per 3 seconds
+            
+            // Accumulate weight with some noise
+            const newWeight = parseFloat(instantWeight) + (Math.random() * 0.5);
+            totalProduction += newWeight;
+            
+            document.getElementById('weight-display').textContent = newWeight.toFixed(1);
+            document.getElementById('kg-min').textContent = (productionRate / 60).toFixed(1);
+            document.getElementById('kg-hour').textContent = Math.round(productionRate);
+            document.getElementById('total-shift').textContent = `${Math.round(totalProduction)} kg`;
+            
+            // Average calculation
+            const hours = (Date.now() - operationStartTime) / 3600000;
+            const avg = hours > 0 ? Math.round(totalProduction / hours) : 0;
+            document.getElementById('avg-hour').textContent = `${avg} kg/h`;
+            
+            // Update chart
+            productionHistory.push(productionRate / 60);
+            if (productionHistory.length > 20) productionHistory.shift();
+            productionChart.data.datasets[0].data = productionHistory;
+            productionChart.update('none'); // efficient update
+            
+            // Alerts
+            if (current > 25) addLog(`ALERTA: Corrente alta (${current}A)`, 'warning');
+            if (tempMotor > 80) addLog(`ALERTA: Temperatura motor crítica (${tempMotor}°C)`, 'error');
+        }
+
+        // Logging System
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('system-log');
+            const entry = document.createElement('div');
+            const time = new Date().toLocaleTimeString('pt-BR');
+            
+            const colors = {
+                'info': 'text-slate-400',
+                'success': 'text-green-400',
+                'warning': 'text-yellow-400',
+                'error': 'text-red-400'
+            };
+            
+            entry.className = `flex gap-2 ${colors[type]} hover:bg-slate-800/50 p-1 rounded`;
+            entry.innerHTML = `<span class="text-slate-600">[${time}]</span> <span>${message}</span>`;
+            
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+            
+            // Also add to alerts if important
+            if (type === 'warning' || type === 'error') {
+                addAlert(message, type);
+            }
+        }
+
+        function addAlert(message, type) {
+            const container = document.getElementById('alerts-container');
+            const alert = document.createElement('div');
+            const time = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            
+            const styles = {
+                'warning': 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400',
+                'error': 'bg-red-500/10 border-red-500/20 text-red-400'
+            };
+            
+            alert.className = `p-3 border rounded-lg flex items-start gap-3 ${styles[type]}`;
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="text-sm text-white font-medium">${message}</p>
+                </div>
+                <span class="text-xs text-slate-500">${time}</span>
+            `;
+            
+            container.insertBefore(alert, container.firstChild);
+            if (container.children.length > 10) container.removeChild(container.lastChild);
+        }
+
+        function clearLogs() {
+            document.getElementById('system-log').innerHTML = '';
+        }
+
+        // Control Functions
+        function toggleMode() {
+            autoMode = !autoMode;
+            addLog(`Modo ${autoMode ? 'AUTOMÁTICO' : 'MANUAL'} ativado`, autoMode ? 'success' : 'info');
+            if (autoMode) addLog('Sistema ajustará velocidade baseado na umidade', 'info');
+        }
+
+        function calibrateSensors() {
+            addLog('Iniciando calibração de sensores...', 'info');
+            setTimeout(() => addLog('Célula de carga calibrada (0.02% precisão)', 'success'), 1500);
+            setTimeout(() => addLog('Sensores de temperatura normalizados', 'success'), 2500);
+            setTimeout(() => addLog('Calibração concluída', 'success'), 3000);
+        }
+
+        function maintenanceMode() {
+            addLog('Modo MANUTENÇÃO ativado - Motor desacoplado', 'warning');
+            isRunning = false;
+            currentRPM = 0;
+            updateMotorDisplay();
+        }
+
+        function viewReports() {
+            addLog('Gerando relatório de produção...', 'info');
+            window.open('#', '_blank'); // Would open reporting module
+        }
+
+        // Initialize
+        setSpeed(5); // Start at max speed
+        setInterval(simulateSensors, 3000); // Update every 3 seconds
+        
+        // Welcome logs
+        setTimeout(() => addLog('Conexão estabelecida com CLP Siemens S7-1200', 'success'), 1000);
+        setTimeout(() => addLog('Inversor WEG CFW500 sincronizado', 'success'), 1500);
+        setTimeout(() => addLog('Balança HX711 calibrada e pronta', 'success'), 2000);
+        setTimeout(() => addLog('Sistema pronto para operação', 'success'), 2500);
+
+        // API Integration Placeholder
+        async function sendToAPI(endpoint, data) {
+            // Real implementation would be:
+            // const response = await fetch(`http://192.168.0.10/api/${endpoint}`, {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(data)
+            // });
+            // return response.json();
+            
+            console.log(`API ${endpoint}:`, data);
+        }
+    </script>
+</body>
+</html>
