@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campifitech Agrotech 5.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #22c55e;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #22c55e;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover, nav a.active {
+            color: #22c55e;
+        }
+
+        .btn-nav {
+            background: #22c55e;
+            color: #0f172a !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-nav:hover {
+            background: #16a34a;
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .hero h1 span {
+            color: #22c55e;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            padding: 50px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            padding: 30px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #22c55e;
+        }
+
+        .feature-card h3 {
+            color: #22c55e;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .contact-section {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .contact-section h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #22c55e;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #fff;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #22c55e;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #22c55e;
+            color: #0f172a;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-submit:hover {
+            background: #16a34a;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #64748b;
+            border-top: 1px solid #1e293b;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fundo animado (Canvas) -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Cabeçalho com Logotipo e Link da Estação Meteorológica -->
+    <header>
+        <div class="logo-container">
+            <img src="Campifitech1.png" alt="Logotipo Campifitech" class="logo-img">
+            <span class="logo-text">Campifitech Agrotech 5.0</span>
+        </div>
+        <nav>
+            <a href="#features">Recursos</a>
+            <a href="Estação.html" class="btn-nav">Estação Meteorológica</a>
+            <a href="#contact">Contato</a>
+        </nav>
+    </header>
+
+    <!-- Seção Principal -->
+    <section class="hero">
+        <h1>Inovação e Precisão com <span>Agrotech + IA</span></h1>
+        <p>Plataforma avançada de monitoramento IoT, LoRaWAN, Visão Computacional, OpenCV, satélites, drones e análise completa de solo e safras para a sua fazenda.</p>
+    </section>
+
+    <!-- Seção de Recursos -->
+    <section id="features" class="features">
+        <div class="feature-card">
+            <h3>Estação Meteorológica Digital</h3>
+            <p>Acompanhamento 24 horas com dados colhidos por redes multiestações via LoRaWAN e Wi-Fi, totalmente customizáveis para cada talhão.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Visão Computacional & IA</h3>
+            <p>Algoritmos em Python e OpenCV para classificação precisa de maturação do caju (verde, de vez e maduro) e automação em colheitadeiras.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Geoprocessamento & Satélite</h3>
+            <p>Mapeamento avançado com ArcGIS, acompanhamento por satélite e drones para análises detalhadas de solo e plantações em camadas.</p>
+        </div>
+    </section>
+
+    <!-- Seção de Contato -->
+    <section id="contact" class="contact-section">
+        <h2>Fale Conosco</h2>
+        <form id="contact-form">
+            <div class="form-group">
+                <label for="name">Nome</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Mensagem</label>
+                <textarea id="message" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Enviar Mensagem</button>
+        </form>
+    </section>
+
+    <!-- Rodapé -->
+    <footer>
+        <p>&copy; 2026 Campifitech Agrotech 5.0. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Script de Animação das Partículas -->
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resize);
+        resize();
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? 'rgba(34, 197, 94, 0.5)' : 'rgba(255, 255, 255, 0.3)';
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        for (let i = 0; i < 100; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                
+                // Connect particles
+                for (let j = index + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(34, 197, 94, ${0.1 * (1 - distance/150)})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+
+        // Form submission
+        document.getElementById('contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Obrigado pelo contato! Em breve nossa equipe entrará em contato com você.');
+            e.target.reset();
+        });
+    </script>
+</body>
+</html>
