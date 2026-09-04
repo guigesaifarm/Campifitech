@@ -1,487 +1,544 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campifitech Agrotech 5.0 - Estação Meteorológica & GIS</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>   
-/* Reset e Estrutura Geral */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campifitech Agrotech 5.0 - Estação Meteorológica & GIS</title>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>    
+        /* Reset e Estrutura Geral */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-body {
-    background-color: #0f172a;
-    color: #f8fafc;
-    position: relative;
-    min-height: 100vh;
-    overflow-x: hidden;
-}
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-/* Canvas Meteorológico de Fundo Dinâmico */
-#weather-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.35;
-}
+        /* Canvas Meteorológico de Fundo Dinâmico */
+        #weather-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.35;
+        }
 
-/* Alinhamento Geral de Cima para Baixo */
-.header, .gis-selector-bar, .main-content-layout {
-    position: relative;
-    z-index: 1;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-}
+        /* Alinhamento Geral de Cima para Baixo */
+        .header, .gis-selector-bar, .main-content-layout {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(8px);
-}
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+        }
 
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-.company-logo {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-}
+        .company-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
 
-/* Barra de Seleção Alinhada */
-.gis-selector-bar {
-    display: flex;
-    gap: 20px;
-    background: rgba(30, 41, 59, 0.9);
-    padding: 15px 25px;
-    border-radius: 12px;
-    margin-top: 20px;
-    align-items: center;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-}
+        .update-info {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
 
-.selector-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+        /* Barra de Seleção Alinhada */
+        .gis-selector-bar {
+            display: flex;
+            gap: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+        }
 
-.selector-group select {
-    padding: 8px 12px;
-    border-radius: 6px;
-    background: #0f172a;
-    color: #fff;
-    border: 1px solid #475569;
-}
+        .selector-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-/* Layout Principal em Coluna Vertical Empilhada */
-.main-content-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    margin-top: 20px;
-    margin-bottom: 40px;
-}
+        .selector-group select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #0f172a;
+            color: #fff;
+            border: 1px solid #475569;
+        }
 
-.dashboard-column {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 100%;
-}
+        .badge {
+            background: #0284c7;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
 
-.top-info-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
+        /* Layout Principal em Coluna Vertical Empilhada */
+        .main-content-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
 
-@media (max-width: 900px) {
-    .top-info-panel {
-        grid-template-columns: 1fr;
-    }
-}
+        .dashboard-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
 
-.station-image-card, .actions-control-card, .qgis-card {
-    background: rgba(30, 41, 59, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 20px;
-    backdrop-filter: blur(6px);
-}
+        .alert-banner {
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid #dc2626;
+            padding: 15px;
+            border-radius: 10px;
+            color: #fca5a5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.station-image-card img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-}
+        .alert-banner.hidden {
+            display: none;
+        }
 
-/* Grades de Cards Meteorológicos e de Satélite */
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-}
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
 
-.card {
-    background: rgba(30, 41, 59, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
+        .btn-danger-action { background: #dc2626; }
+        .btn-success { background: #16a34a; }
+        .btn-danger { background: #dc2626; }
 
-.card-icon {
-    font-size: 1.5rem;
-    color: #38bdf8;
-}
+        .top-info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
-.card .value {
-    font-size: 1.8rem;
-    font-weight: bold;
-}
+        @media (max-width: 900px) {
+            .top-info-panel {
+                grid-template-columns: 1fr;
+            }
+        }
 
-.card .unit {
-    font-size: 0.9rem;
-    color: #94a3b8;
-}
+        .station-image-card, .actions-control-card, .qgis-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(6px);
+        }
 
-/* Mapa GIS Alinhado Abaixo */
-.qgis-map-column {
-    width: 100%;
-}
+        .station-image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
 
-.map-container-simulated {
-    width: 100%;
-    height: 350px;
-    background: #1e293b;
-    border-radius: 10px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px dashed #64748b;
-    margin-top: 15px;
-}
+        .control-action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
 
-.gis-overlay-grid {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(#334155 1px, transparent 1px);
-    background-size: 20px 20px;
-}
+        /* Grades de Cards Meteorológicos e de Satélite */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
 
-.gis-marker {
-    background: #16a34a;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    z-index: 2;
-}
+        .card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
 
-.gis-coords {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(15, 23, 42, 0.8);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-}
+        .card-icon {
+            font-size: 1.5rem;
+            color: #38bdf8;
+        }
 
-</style>
-  
+        .card h3 {
+            font-size: 1rem;
+            color: #cbd5e1;
+        }
+
+        .card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .card .unit {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .sub-text {
+            font-size: 0.8rem;
+            color: #38bdf8;
+        }
+
+        /* Mapa GIS Alinhado Abaixo */
+        .qgis-map-column {
+            width: 100%;
+        }
+
+        .map-container-simulated {
+            width: 100%;
+            height: 350px;
+            background: #1e293b;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed #64748b;
+            margin-top: 15px;
+        }
+
+        .gis-overlay-grid {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .gis-marker {
+            background: #16a34a;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .gis-coords {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .qgis-legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body>
-  
-<!-- Canvas Dinâmico para Efeito Climático de Fundo -->
+
+    <!-- Canvas Dinâmico para Efeito Climático de Fundo -->
     <canvas id="weather-canvas"></canvas>
-  
-    <header class="header">
-        <div class="logo-container">
-            <img src="Campifitech1.png" alt="Campifitech Logo" class="company-logo">
-            <div>
-                <h1>Campifitech Agrotech 5.0</h1>
-                <p class="subtitle-desc">
-                    Propriedades Rurais • Sensores Digitais • LoRaWAN (Off-Grid) & ESP32 (On-Grid) • Gestão GIS por Talhões
-                </p>
-            </div>
-        </div>
-        <div class="update-info">
-            <p><i class="fa-solid fa-clock-rotate-left"></i> Última atualização: <span id="last-update">--:--:--</span></p>
-            <p class="next-sync">Próxima sincronização: <span id="countdown">20:00</span></p>
-        </div>
-    </header>
 
-    <!-- Barra de Controle de Unidades e Talhões -->
-    <section class="gis-selector-bar">
-        <div class="selector-group">
-            <label for="unit-select"><i class="fa-solid fa-farm"></i> Unidade:</label>
-            <select id="unit-select" onchange="loadTalhoes()">
-                <option value="fazenda_norte">Fazenda Boa Vista (Norte)</option>
-                <option value="fazenda_sul">Fazenda Primavera (Sul)</option>
-            </select>
-        </div>
-        <div class="selector-group">
-            <label for="talhao-select"><i class="fa-solid fa-map-location-dot"></i> Talhão:</label>
-            <select id="talhao-select" onchange="changeTalhaoData()">
-                <option value="talhao_01">Talhão 01 - Setor Café</option>
-                <option value="talhao_02">Talhão 02 - Irrigação Grãos</option>
-                <option value="talhao_03">Talhão 03 - Área de Preservação</option>
-            </select>
-        </div>
-        <div class="selector-group connectivity-badge">
-            <span id="conn-type" class="badge lorawan"><i class="fa-solid fa-tower-broadcast"></i> LoRaWAN (Off-Grid)</span>
-        </div>
-    </section>
+    <header class="header">
+        <div class="logo-container">
+            <img src="Campifitech1.png" alt="Campifitech Logo" class="company-logo" onerror="this.style.display='none'">
+            <div>
+                <h1>Campifitech Agrotech 5.0</h1>
+                <p class="subtitle-desc" style="font-size: 0.85rem; color: #94a3b8;">
+                    Propriedades Rurais • Sensores Digitais • LoRaWAN & ESP32 • Gestão GIS por Talhões
+                </p>
+            </div>
+        </div>
+        <div class="update-info">
+            <p><i class="fa-solid fa-clock-rotate-left"></i> Atualização: <span id="last-update">--:--:--</span></p>
+            <p class="next-sync">Próxima: <span id="countdown">20:00</span></p>
+        </div>
+    </header>
 
-    <!-- Layout Principal: Dashboard à Esquerda/Centro e Mapa QGIS à Direita -->
-    <main class="main-content-layout">
-        
-        <!-- Coluna Esquerda: Alerta, Imagem da Estação, Controles de Atuação e Cards de Sensores -->
-        <div class="dashboard-column">
-            
-            <!-- Alerta de Incêndio -->
-            <div id="fire-alert" class="alert-banner hidden">
-                <i class="fa-solid fa-triangle-exclamation"></i> ALERTA: Foco de incêndio detectado! 
-                <button class="btn-action btn-danger-action" onclick="ativarCombateIncendio()">Ativar Sistema de Combate</button>
-            </div>
+    <!-- Barra de Controle de Unidades e Talhões -->
+    <section class="gis-selector-bar">
+        <div class="selector-group">
+            <label for="unit-select"><i class="fa-solid fa-farm"></i> Unidade:</label>
+            <select id="unit-select" onchange="loadTalhoes()">
+                <option value="fazenda_norte">Fazenda Boa Vista (Cristalina-GO)</option>
+                <option value="fazenda_sul">Fazenda Primavera (Unaí-MG)</option>
+            </select>
+        </div>
+        <div class="selector-group">
+            <label for="talhao-select"><i class="fa-solid fa-map-location-dot"></i> Talhão:</label>
+            <select id="talhao-select" onchange="changeTalhaoData()">
+                <option value="talhao_01">Talhão 01 - Setor Soja/Café</option>
+                <option value="talhao_02">Talhão 02 - Irrigação Grãos</option>
+                <option value="talhao_03">Talhão 03 - Área de Preservação</option>
+            </select>
+        </div>
+        <div class="selector-group connectivity-badge">
+            <span id="conn-type" class="badge"><i class="fa-solid fa-tower-broadcast"></i> LoRaWAN (Off-Grid)</span>
+        </div>
+    </section>
 
-            <!-- Bloco Superior: Imagem da Estação + Painel de Ações Rápidas -->
-            <div class="top-info-panel">
-                <div class="station-image-card">
-                    <img src="estacao_meteorologica (1).jpg " alt="Estação Meteorológica Campifitech" id="station-img">
-                    <span class="img-caption"><i class="fa-solid fa-camera"></i> Estação IoT Ativa no Talhão</span>
-                </div>
-                <div class="actions-control-card">
-                    <h3><i class="fa-solid fa-sliders"></i> Controles Dinâmicos</h3>
-                    <p>Gerencie atuadores remotos instantaneamente:</p>
-                    
-                    <div class="control-action-row">
-                        <span>Bomba de Irrigação:</span>
-                        <button id="btn-irrigacao" class="btn-action btn-success" onclick="toggleIrrigacao()">Ligar Irrigação</button>
-                    </div>
-                    
-                    <div class="control-action-row">
-                        <span>Combate a Incêndio:</span>
-                        <button id="btn-incendio" class="btn-action btn-danger" onclick="ativarCombateIncendio()">Disparar Supressão</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grade de Cards Meteorológicos -->
-            <div class="grid-container">
-                <div class="card">
-                    <i class="fa-solid fa-wind card-icon"></i>
-                    <h3>Velocidade do Vento</h3>
-                    <p class="value" id="wind-speed">-- <span class="unit">km/h</span></p>
-                </div>
-                <div class="card">
-                    <i class="fa-solid fa-compass card-icon"></i>
-                    <h3>Direção do Vento</h3>
-                    <p class="value" id="wind-dir">---</p>
-                </div>
-                <div class="card">
-                    <i class="fa-solid fa-temperature-high card-icon"></i>
-                    <h3>Temperatura do Ar</h3>
-                    <p class="value" id="air-temp">-- <span class="unit">°C</span></p>
-                </div>
-                <div class="card">
-                    <i class="fa-solid fa-droplet card-icon"></i>
-                    <h3>Umidade do Ar</h3>
-                    <p class="value" id="air-humidity">-- <span class="unit">%</span></p>
-                </div>
-                <div class="card">
-                    <i class="fa-solid fa-earth-americas card-icon"></i>
-                    <h3>Temperatura do Solo</h3>
-                    <p class="value" id="soil-temp">-- <span class="unit">°C</span></p>
-                </div>
-                <div class="card">
-                    <i class="fa-solid fa-seedling card-icon"></i>
-                    <h3>Umidade do Solo</h3>
-                    <p class="value" id="soil-humidity">-- <span class="unit">%</span></p>
-                </div>
-                <div class="card" id="gas-card">
-                    <i class="fa-solid fa-fire-flame-curved card-icon"></i>
-                    <h3>Gás Combustível</h3>
-                    <p class="value" id="gas-level">-- <span class="unit">PPM</span></p>
-                </div>
-
-              <!-- Novos Cards de Índices Orbitais (Sentinel-2) -->
-<div class="card satellite-card">
-    <i class="fa-solid fa-satellite card-icon text-agri-600"></i>
-    <h3>Índice NDVI (Vigor)</h3>
-    <p class="value" id="ndvi-value">0.82 <span class="unit">(Ótimo)</span></p>
-    <span class="sub-text"> Sentinel-2 (Ciclo: 5 dias)</span>
-</div>
-<div class="card satellite-card">
-    <i class="fa-solid fa-chart-line card-icon text-agri-600"></i>
-    <h3>Índice NDRE (Clorofila)</h3>
-    <p class="value" id="ndre-value">0.45 <span class="unit">(Saudável)</span></p>
-    <span class="sub-text">Borda Vermelha</span>
-</div>
-            </div>
-
-          
-        </div>
-
-        <!-- Coluna Direita: Mapa QGIS Dinâmico do Talhão Selecionado -->
-        <aside class="qgis-map-column">
-            <div class="qgis-card">
-                <h3><i class="fa-solid fa-map"></i> Monitoramento GIS (QGIS Web)</h3>
-                <p id="map-subtitle" class="map-sub">Visualizando: Fazenda Boa Vista - Talhão 01</p>
-                <div class="map-container-simulated" id="qgis-view">
-                    <!-- Simulador visual de camada vetorial GIS -->
-                    <div class="gis-overlay-grid"></div>
-                    <div class="gis-marker" id="marker-talhao">Talhão Ativo</div>
-                    <span class="gis-coords">Lat: -21.1767, Long: -47.8208</span>
-                </div>
-                <div class="qgis-legend">
-                    <span><i class="fa-solid fa-square" style="color: #16a34a;"></i> Saudável</span>
-                    <span><i class="fa-solid fa-square" style="color: #ca8a04;"></i> Atenção Hídrica</span>
-                    <span><i class="fa-solid fa-square" style="color: #dc2626;"></i> Risco Crítico</span>
-                </div>
-            </div>
-        </aside>
-
-    </main>
-
-    <script>
-
-const dadosFazendas = {
-    "fazenda_norte": {
-        nome: "Fazenda Boa Vista (Cristalina - GO)",
-        area: "20 hectares",
-        talhoes: {
-            "talhao_01": { nome: "Talhão 01 - Setor Soja/Café", lat: -16.7604, lon: -47.6125, ndvi: "0.84", ndre: "0.48", status: "Saudável" },
-            "talhao_02": { nome: "Talhão 02 - Irrigação Grãos", lat: -16.7650, lon: -47.6180, ndvi: "0.79", ndre: "0.41", status: "Atenção Hídrica" },
-            "talhao_03": { nome: "Talhão 03 - Área de Preservação", lat: -16.7580, lon: -47.6090, ndvi: "0.91", ndre: "0.55", status: "Preservado" }
-        }
-    },
-    "fazenda_sul": {
-        nome: "Fazenda Primavera (Unaí - MG)",
-        area: "40 hectares",
-        talhoes: {
-            "talhao_01": { nome: "Talhão 01 - Lote Principal Soja", lat: -16.3575, lon: -46.9061, ndvi: "0.81", ndre: "0.44", status: "Saudável" },
-            "talhao_02": { nome: "Talhão 02 - Milho Safrinha", lat: -16.3620, lon: -46.9120, ndvi: "0.75", ndre: "0.38", status: "Atenção Hídrica" },
-            "talhao_03": { nome: "Talhao 03 - Pista de Rotação", lat: -16.3510, lon: -46.9000, ndvi: "0.68", ndre: "0.32", status: "Risco Crítico" }
-        }
-    }
-};
-
-function changeTalhaoData() {
-    const unidadeId = document.getElementById("unit-select").value;
-    const talhaoId = document.getElementById("talhao-select").value;
-    
-    const dadosUnidade = dadosFazendas[unidadeId];
-    const talhao = dadosUnidade.talhoes[talhaoId];
-
-    if (talhao) {
-        // Atualiza textos do mapa GIS
-        document.getElementById("map-subtitle").innerText = `Visualizando: ${dadosUnidade.nome} - ${talhao.nome} (${dadosUnidade.area})`;
+    <!-- Layout Principal: Empilhado de Cima para Baixo -->
+    <main class="main-content-layout">
         
-        // Atualiza coordenadas no simulador GIS
-        document.querySelector(".gis-coords").innerText = `Lat: ${talhao.lat}, Long: ${talhao.lon}`;
-        
-        // Atualiza os índices do Sentinel-2 na tela
-        document.getElementById("ndvi-value").innerHTML = `${talhao.ndvi} <span class="unit">(${talhao.status})</span>`;
-        document.getElementById("ndre-value").innerHTML = `${talhao.ndre} <span class="unit">(Borda Vermelha)</span>`;
-    }
-}
+        <div class="dashboard-column">
+            
+            <!-- Alerta de Incêndio -->
+            <div id="fire-alert" class="alert-banner hidden">
+                <span><i class="fa-solid fa-triangle-exclamation"></i> ALERTA: Foco de incêndio detectado!</span>
+                <button class="btn-action btn-danger-action" onclick="ativarCombateIncendio()">Ativar Sistema</button>
+            </div>
 
-function loadTalhoes() {
-    const unidadeId = document.getElementById("unit-select").value;
-    const talhaoSelect = document.getElementById("talhao-select");
-    talhaoSelect.innerHTML = ""; // Limpa opções anteriores
+            <!-- Bloco Superior: Imagem da Estação + Painel de Ações -->
+            <div class="top-info-panel">
+                <div class="station-image-card">
+                    <h3><i class="fa-solid fa-camera"></i> Câmera da Estação</h3>
+                    <img src="estacao_meteorologica.jpg" alt="Estação Meteorológica Campifitech" id="station-img" onerror="this.src='https://images.unsplash.com/photo-1590055564482-be6e8246f777?w=800&q=80'">
+                </div>
+                <div class="actions-control-card">
+                    <h3><i class="fa-solid fa-sliders"></i> Controles Dinâmicos</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 5px;">Gerencie atuadores remotos instantaneamente:</p>
+                    
+                    <div class="control-action-row">
+                        <span>Bomba de Irrigação:</span>
+                        <button id="btn-irrigacao" class="btn-action btn-success" onclick="toggleIrrigacao()">Ligar</button>
+                    </div>
+                    
+                    <div class="control-action-row">
+                        <span>Combate a Incêndio:</span>
+                        <button id="btn-incendio" class="btn-action btn-danger" onclick="ativarCombateIncendio()">Disparar</button>
+                    </div>
+                </div>
+            </div>
 
-    const talhoesDaUnidade = dadosFazendas[unidadeId].talhoes;
-    for (let key in talhoesDaUnidade) {
-        let opt = document.createElement("option");
-        opt.value = key;
-        opt.innerHTML = talhoesDaUnidade[key].nome;
-        talhaoSelect.appendChild(opt);
-    }
-    changeTalhaoData();
-}
+            <!-- Grade de Cards Meteorológicos e Orbitais -->
+            <div class="grid-container">
+                <div class="card">
+                    <i class="fa-solid fa-wind card-icon"></i>
+                    <h3>Velocidade do Vento</h3>
+                    <p class="value" id="wind-speed">14.2 <span class="unit">km/h</span></p>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-compass card-icon"></i>
+                    <h3>Direção do Vento</h3>
+                    <p class="value" id="wind-dir">NE</p>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-temperature-high card-icon"></i>
+                    <h3>Temperatura do Ar</h3>
+                    <p class="value" id="air-temp">28.5 <span class="unit">°C</span></p>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-droplet card-icon"></i>
+                    <h3>Umidade do Ar</h3>
+                    <p class="value" id="air-humidity">62 <span class="unit">%</span></p>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-earth-americas card-icon"></i>
+                    <h3>Temperatura do Solo</h3>
+                    <p class="value" id="soil-temp">24.1 <span class="unit">°C</span></p>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-seedling card-icon"></i>
+                    <h3>Umidade do Solo</h3>
+                    <p class="value" id="soil-humidity">45 <span class="unit">%</span></p>
+                </div>
+                <div class="card" id="gas-card">
+                    <i class="fa-solid fa-fire-flame-curved card-icon"></i>
+                    <h3>Gás Combustível</h3>
+                    <p class="value" id="gas-level">12 <span class="unit">PPM</span></p>
+                </div>
+                <div class="card satellite-card">
+                    <i class="fa-solid fa-satellite card-icon"></i>
+                    <h3>Índice NDVI (Vigor)</h3>
+                    <p class="value" id="ndvi-value">0.82 <span class="unit">(Ótimo)</span></p>
+                    <span class="sub-text">Sentinel-2 (5 dias)</span>
+                </div>
+                <div class="card satellite-card">
+                    <i class="fa-solid fa-chart-line card-icon"></i>
+                    <h3>Índice NDRE (Clorofila)</h3>
+                    <p class="value" id="ndre-value">0.45 <span class="unit">(Saudável)</span></p>
+                    <span class="sub-text">Borda Vermelha</span>
+                </div>
+            </div>
+        </div>
 
-      // Configuração do Efeito Climático via Canvas
-const canvas = document.getElementById('weather-canvas');
-const ctx = canvas.getContext('2d');
+        <!-- Coluna do Mapa GIS Posicionada Abaixo -->
+        <aside class="qgis-map-column">
+            <div class="qgis-card">
+                <h3><i class="fa-solid fa-map"></i> Monitoramento GIS (QGIS Web)</h3>
+                <p id="map-subtitle" class="map-sub" style="font-size: 0.9rem; color: #94a3b8; margin-top: 5px;">Visualizando: Fazenda Boa Vista (Cristalina - GO) - Talhão 01 - Setor Soja/Café (20 hectares)</p>
+                <div class="map-container-simulated" id="qgis-view">
+                    <div class="gis-overlay-grid"></div>
+                    <div class="gis-marker" id="marker-talhao">Talhão Ativo</div>
+                    <span class="gis-coords">Lat: -16.7604, Long: -47.6125</span>
+                </div>
+                <div class="qgis-legend">
+                    <span><i class="fa-solid fa-square" style="color: #16a34a;"></i> Saudável</span>
+                    <span><i class="fa-solid fa-square" style="color: #ca8a04;"></i> Atenção Hídrica</span>
+                    <span><i class="fa-solid fa-square" style="color: #dc2626;"></i> Risco Crítico</span>
+                </div>
+            </div>
+        </aside>
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+    </main>
 
-// Criando partículas de chuva/vento flutuantes
-const particles = [];
-const numParticles = 60;
+    <script>
+        const dadosFazendas = {
+            "fazenda_norte": {
+                nome: "Fazenda Boa Vista (Cristalina - GO)",
+                area: "20 hectares",
+                talhoes: {
+                    "talhao_01": { nome: "Talhão 01 - Setor Soja/Café", lat: -16.7604, lon: -47.6125, ndvi: "0.84", ndre: "0.48", status: "Saudável" },
+                    "talhao_02": { nome: "Talhão 02 - Irrigação Grãos", lat: -16.7650, lon: -47.6180, ndvi: "0.79", ndre: "0.41", status: "Atenção Hídrica" },
+                    "talhao_03": { nome: "Talhão 03 - Área de Preservação", lat: -16.7580, lon: -47.6090, ndvi: "0.91", ndre: "0.55", status: "Preservado" }
+                }
+            },
+            "fazenda_sul": {
+                nome: "Fazenda Primavera (Unaí - MG)",
+                area: "40 hectares",
+                talhoes: {
+                    "talhao_01": { nome: "Talhão 01 - Lote Principal Soja", lat: -16.3575, lon: -46.9061, ndvi: "0.81", ndre: "0.44", status: "Saudável" },
+                    "talhao_02": { nome: "Talhão 02 - Milho Safrinha", lat: -16.3620, lon: -46.9120, ndvi: "0.75", ndre: "0.38", status: "Atenção Hídrica" },
+                    "talhao_03": { nome: "Talhao 03 - Pista de Rotação", lat: -16.3510, lon: -46.9000, ndvi: "0.68", ndre: "0.32", status: "Risco Crítico" }
+                }
+            }
+        };
 
-for (let i = 0; i < numParticles; i++) {
-    particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        length: Math.random() * 20 + 10,
-        speed: Math.random() * 3 + 2,
-        opacity: Math.random() * 0.5 + 0.1
-    });
-}
+        function changeTalhaoData() {
+            const unidadeId = document.getElementById("unit-select").value;
+            const talhaoId = document.getElementById("talhao-select").value;
+            
+            const dadosUnidade = dadosFazendas[unidadeId];
+            const talhao = dadosUnidade.talhoes[talhaoId];
 
-function animateWeather() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-    ctx.lineWidth = 1.5;
-
-    particles.forEach(p => {
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        // Efeito inclinado simulando vento predominante
-        ctx.lineTo(p.x - 3, p.y + p.length);
-        ctx.stroke();
-
-        // Movimento vertical da partícula
-        p.y += p.speed;
-        p.x -= 0.5;
-
-        // Reinicia a partícula ao atingir o fundo da tela
-        if (p.y > canvas.height) {
-            p.y = -20;
-            p.x = Math.random() * canvas.width;
+            if (talhao) {
+                document.getElementById("map-subtitle").innerText = `Visualizando: ${dadosUnidade.nome} - ${talhao.nome} (${dadosUnidade.area})`;
+                document.querySelector(".gis-coords").innerText = `Lat: ${talhao.lat}, Long: ${talhao.lon}`;
+                document.getElementById("ndvi-value").innerHTML = `${talhao.ndvi} <span class="unit">(${talhao.status})</span>`;
+                document.getElementById("ndre-value").innerHTML = `${talhao.ndre} <span class="unit">(Borda Vermelha)</span>`;
+            }
         }
-    });
 
-    requestAnimationFrame(animateWeather);
-}
+        function loadTalhoes() {
+            const unidadeId = document.getElementById("unit-select").value;
+            const talhaoSelect = document.getElementById("talhao-select");
+            talhaoSelect.innerHTML = "";
 
-animateWeather();
-      
+            const talhoesDaUnidade = dadosFazendas[unidadeId].talhoes;
+            for (let key in talhoesDaUnidade) {
+                let opt = document.createElement("option");
+                opt.value = key;
+                opt.innerHTML = talhoesDaUnidade[key].nome;
+                talhaoSelect.appendChild(opt);
+            }
+            changeTalhaoData();
+        }
+
+        function toggleIrrigacao() {
+            const btn = document.getElementById("btn-irrigacao");
+            if (btn.innerText.includes("Ligar")) {
+                btn.innerText = "Desligar";
+                btn.style.background = "#dc2626";
+            } else {
+                btn.innerText = "Ligar Irrigação";
+                btn.style.background = "#16a34a";
+            }
+        }
+
+        function ativarCombateIncendio() {
+            const alerta = document.getElementById("fire-alert");
+            alerta.classList.toggle("hidden");
+        }
+
+        // Animação do Canvas Climático de Fundo
+        const canvas = document.getElementById('weather-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particles = [];
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                length: Math.random() * 20 + 10,
+                speed: Math.random() * 2 + 1,
+            });
+        }
+
+        function animateWeather() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+            ctx.lineWidth = 1;
+
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - 2, p.y + p.length);
+                ctx.stroke();
+
+                p.y += p.speed;
+                p.x -= 0.3;
+
+                if (p.y > canvas.height) {
+                    p.y = -20;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+            requestAnimationFrame(animateWeather);
+        }
+        animateWeather();
     </script>
 </body>
 </html>
