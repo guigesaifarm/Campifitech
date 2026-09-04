@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAMPIFITECH | Tecnologia para Agronegócio</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        agri: {
+                            40: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        tech: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #0f172a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(22, 163, 74, 0.2);
+        }
+        .grid-pattern {
+            background-image: radial-gradient(rgba(22, 163, 74, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 overflow-x-hidden">
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-transparent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Logo e Nome -->
+                <div class="flex items-center space-x-3">
+                    <img src="Campifitech1.png" alt="Campifitech Logo" class="w-48 h-auto object-contain">
+                    <span class="font-display font-bold text-2xl tracking-tight text-slate-900">
+                        CAMPIFI<span class="text-agri-600">TECH</span>
+                    </span>
+                </div>
+                
+                <!-- Links Desktop -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#home" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Home</a>
+                    <a href="#servicos" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Serviços</a>
+                    <a href="#tecnologia" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Tecnologia</a>
+                    <a href="#sobre" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Sobre</a>
+                    <a href="#contato" class="px-6 py-2 bg-agri-600 text-white rounded-full font-medium hover:bg-agri-700 transition-all hover:shadow-lg hover:shadow-agri-500/30">
+                        Contato
+                    </a>
+                </div>
+
+                <!-- Botão Mobile no Canto Direito -->
+                <button id="mobile-menu-btn" class="md:hidden text-slate-700 hover:text-agri-600 focus:outline-none p-2">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden glass-dark absolute w-full">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="#home" class="block px-3 py-2 text-white hover:text-agri-400">Home</a>
+                <a href="#servicos" class="block px-3 py-2 text-white hover:text-agri-400">Serviços</a>
+                <a href="#tecnologia" class="block px-3 py-2 text-white hover:text-agri-400">Tecnologia</a>
+                <a href="#sobre" class="block px-3 py-2 text-white hover:text-agri-400">Sobre</a>
+                <a href="#contato" class="block px-3 py-2 text-agri-400 font-medium">Contato</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-slate-900 via-tech-900 to-agri-900">
+        <canvas id="hero-canvas" class="absolute inset-0 w-full h-full opacity-30"></canvas>
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/50 to-transparent"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8 animate-fade-in">
+                    <div class="inline-flex items-center px-4 py-2 rounded-full bg-agri-500/10 border border-agri-500/20 text-agri-400 text-sm font-medium">
+                        <span class="w-2 h-2 bg-agri-500 rounded-full mr-2 animate-pulse"></span>
+                        Inovação no Campo
+                    </div>
+                    
+                    <h1 class="font-display text-5xl md:text-7xl font-bold text-white leading-tight">
+                        Tecnologia que <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-agri-400 to-emerald-300">
+                            Transforma
+                        </span> <br>
+                        seu Agronegócio
+                    </h1>
+                    
+                    <p class="text-xl text-slate-300 max-w-lg leading-relaxed">
+                        Soluções integradas de alta precisão para agricultura e pecuária. 
+                        Do campo à gestão, impulsionamos sua produtividade com dados inteligentes.
+                    </p>
+
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#servicos" class="px-8 py-4 bg-agri-600 text-white rounded-full font-semibold hover:bg-agri-500 transition-all hover:shadow-xl hover:shadow-agri-500/25 flex items-center gap-2 group">
+                            Explorar Soluções
+                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#contato" class="px-8 py-4 border-2 border-slate-600 text-white rounded-full font-semibold hover:border-agri-500 hover:text-agri-400 transition-all">
+                            Fale Conosco
+                        </a>
+                    </div>
+                </div>
+
+                <div class="relative hidden lg:block">
+                    <div class="absolute inset-0 bg-agri-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80" 
+                         alt="Agricultura de Precisão" 
+                         class="relative rounded-2xl shadow-2xl border border-slate-700/50 animate-float object-cover h-[600px] w-full">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicos" class="py-24 bg-white relative">
+        <div class="absolute inset-0 grid-pattern opacity-50"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+                    Soluções Completas para o <span class="text-agri-600">Agronegócio</span>
+                </h2>
+                <p class="text-lg text-slate-600">
+                    Oferecemos tecnologia de ponta para maximizar resultados tanto na agricultura quanto na pecuária, 
+                    com soluções personalizadas para cada tipo de operação.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 1. Agricultura de Precisão -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-agri-50 to-white border border-agri-100 hover-lift flex flex-col justify-between">
+                    <div class="p-8 relative">
+                        <div class="w-16 h-16 bg-agri-600 rounded-2xl flex items-center justify-center text-white text-2xl mb-6 shadow-lg shadow-agri-500/30">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-slate-900 mb-4">Agricultura de Precisão</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Mapeamento detalhado, análise de solo, gestão de plantio e colheita com dados precisos para otimizar cada hectare.
+                        </p>
+                    </div>
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=800&q=80" alt="Agricultura de Precisão" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- 2. Pecuária Inteligente -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 hover-lift flex flex-col justify-between">
+                    <div class="p-8 relative">
+                        <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl mb-6 shadow-lg shadow-blue-500/30">
+                            <i class="fas fa-cow"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-slate-900 mb-4">Pecuária Inteligente</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Monitoramento animal em tempo real, gestão de pastagens, controle reprodutivo e rastreabilidade completa do rebanho.
+                        </p>
+                    </div>
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=800&q=80" alt="Pecuária Inteligente" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- 3. Estação Meteorológica IA IoT LoRaWAN -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-50 to-white border border-teal-100 hover-lift flex flex-col justify-between">
+                    <div class="p-8 relative">
+                        <div class="w-16 h-16 bg-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl mb-6 shadow-lg shadow-teal-500/30">
+                            <i class="fas fa-cloud-sun-rain"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-slate-900 mb-4">Estação Meteorológica IA IoT LoRaWAN</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Previsões climáticas hiper-locais conectadas por rede LoRaWAN de longo alcance e análise preditiva avançada via inteligência artificial.
+                        </p>
+                    </div>
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1590055562697-54992383842d?w=800&q=80" alt="Estação Meteorológica IA IoT LoraWAN" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- 4. Moagem de Palmas -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-white border border-amber-100 hover-lift flex flex-col justify-between">
+                    <div class="p-8 relative">
+                        <div class="w-16 h-16 bg-amber-600 rounded-2xl flex items-center justify-center text-white text-2xl mb-6 shadow-lg shadow-amber-500/30">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-slate-900 mb-4">Moagem de Palmas</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Tecnologia de ponta e automação para o processamento e moagem eficiente de palma forrageira voltada para a suplementação animal.
+                        </p>
+                    </div>
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80" alt="Moagem de Palmas" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- 5. Gestão Plantação de Soja -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 hover-lift flex flex-col justify-between md:col-span-2 lg:col-span-1">
+                    <div class="p-8 relative">
+                        <div class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-2xl mb-6 shadow-lg shadow-emerald-500/30">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-slate-900 mb-4">Gestão Plantação de Soja</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Monitoramento completo do ciclo produtivo da soja, controle de pragas, adubação sob medida e estimativas precisas de colheita.
+                        </p>
+                    </div>
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80" alt="Gestão Plantação de Soja" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contato" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16">
+                <div>
+                    <h2 class="font-display text-4xl font-bold text-slate-900 mb-6">Entre em Contato</h2>
+                    <p class="text-lg text-slate-600 mb-8">
+                        Estamos prontos para atender sua propriedade. Preencha o formulário ou utilize nossos canais diretos.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-agri-100 rounded-full flex items-center justify-center text-agri-600">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-900">Endereço</h4>
+                                <p class="text-slate-600">Av. do Agronegócio, 1000 - Centro<br>São Paulo, SP - 01000-000</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-agri-100 rounded-full flex items-center justify-center text-agri-600">
+                                <i class="fas fa-phone text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-900">Telefone</h4>
+                                <p class="text-slate-600">(11) 0000-0000</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
