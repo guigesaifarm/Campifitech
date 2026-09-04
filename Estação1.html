@@ -7,9 +7,220 @@
     <link rel="stylesheet" href="style.css">
     <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>   
+/* Reset e Estrutura Geral */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #0f172a;
+    color: #f8fafc;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Canvas Meteorológico de Fundo Dinâmico */
+#weather-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+}
+
+/* Alinhamento Geral de Cima para Baixo */
+.header, .gis-selector-bar, .main-content-layout {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.company-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+/* Barra de Seleção Alinhada */
+.gis-selector-bar {
+    display: flex;
+    gap: 20px;
+    background: rgba(30, 41, 59, 0.9);
+    padding: 15px 25px;
+    border-radius: 12px;
+    margin-top: 20px;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.selector-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.selector-group select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #fff;
+    border: 1px solid #475569;
+}
+
+/* Layout Principal em Coluna Vertical Empilhada */
+.main-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.top-info-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .top-info-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+.station-image-card, .actions-control-card, .qgis-card {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(6px);
+}
+
+.station-image-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Grades de Cards Meteorológicos e de Satélite */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.card {
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card-icon {
+    font-size: 1.5rem;
+    color: #38bdf8;
+}
+
+.card .value {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.card .unit {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+/* Mapa GIS Alinhado Abaixo */
+.qgis-map-column {
+    width: 100%;
+}
+
+.map-container-simulated {
+    width: 100%;
+    height: 350px;
+    background: #1e293b;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #64748b;
+    margin-top: 15px;
+}
+
+.gis-overlay-grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#334155 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.gis-marker {
+    background: #16a34a;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.gis-coords {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.8);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+</style>
+  
 </head>
 <body>
-
+  
+<!-- Canvas Dinâmico para Efeito Climático de Fundo -->
+    <canvas id="weather-canvas"></canvas>
+  
     <header class="header">
         <div class="logo-container">
             <img src="Campifitech1.png" alt="Campifitech Logo" class="company-logo">
@@ -216,6 +427,60 @@ function loadTalhoes() {
     }
     changeTalhaoData();
 }
+
+      // Configuração do Efeito Climático via Canvas
+const canvas = document.getElementById('weather-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Criando partículas de chuva/vento flutuantes
+const particles = [];
+const numParticles = 60;
+
+for (let i = 0; i < numParticles; i++) {
+    particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        length: Math.random() * 20 + 10,
+        speed: Math.random() * 3 + 2,
+        opacity: Math.random() * 0.5 + 0.1
+    });
+}
+
+function animateWeather() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 1.5;
+
+    particles.forEach(p => {
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        // Efeito inclinado simulando vento predominante
+        ctx.lineTo(p.x - 3, p.y + p.length);
+        ctx.stroke();
+
+        // Movimento vertical da partícula
+        p.y += p.speed;
+        p.x -= 0.5;
+
+        // Reinicia a partícula ao atingir o fundo da tela
+        if (p.y > canvas.height) {
+            p.y = -20;
+            p.x = Math.random() * canvas.width;
+        }
+    });
+
+    requestAnimationFrame(animateWeather);
+}
+
+animateWeather();
       
     </script>
 </body>
