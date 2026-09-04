@@ -80,32 +80,52 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 overflow-x-hidden">
 
-    <!-- Navigation -->
+    <body class="bg-slate-50 text-slate-800 overflow-x-hidden">
     <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-transparent">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-         <div class="flex justify-between items-center h-20">
-    <div class="flex items-center space-x-3">
-        <!-- Logo da empresa (substituiu o ícone de folha) -->
-        <img src="Campifitech1.png" alt="Campifitech Logo" class="w-48 h-auto object-contain">
-        
-        <span class="font-display font-bold text-2xl tracking-tight text-slate-900">
-            CAMPIFI<span class="text-agri-600">TECH</span>
-        </span>
-    </div>
-    
-    <div class="hidden md:flex space-x-8">
-        <a href="#home" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Home</a>
-        <a href="#servicos" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Serviços</a>
-        <a href="#tecnologia" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Tecnologia</a>
-        <a href="#sobre" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Sobre</a>
-        <a href="#contato" class="px-6 py-2 bg-agri-600 text-white rounded-full font-medium hover:bg-agri-700 transition-all hover:shadow-lg hover:shadow-agri-500/30">
-            Contato
-        </a>
-    </div>
-</div>               
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Logo e Nome -->
+                <div class="flex items-center space-x-3">
+                    <img src="Campifitech1.png" alt="Campifitech Logo" class="w-48 h-auto object-contain">
+                    <span class="font-display font-bold text-2xl tracking-tight text-slate-900">
+                        CAMPIFI<span class="text-agri-600">TECH</span>
+                    </span>
+                </div>
+                
+                <!-- Links Desktop -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#home" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Home</a>
+                    <a href="#servicos" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Serviços</a>
+                    <a href="#tecnologia" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Tecnologia</a>
+                    <a href="#sobre" class="text-slate-700 hover:text-agri-600 font-medium transition-colors">Sobre</a>
+                    <a href="#contato" class="px-6 py-2 bg-agri-600 text-white rounded-full font-medium hover:bg-agri-700 transition-all hover:shadow-lg hover:shadow-agri-500/30">
+                        Contato
+                    </a>
+                </div>
+
+                <!-- Botão Mobile no Canto Direito -->
+                <button id="mobile-menu-btn" class="md:hidden text-slate-700 hover:text-agri-600 focus:outline-none p-2">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden glass-dark absolute w-full">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="#home" class="block px-3 py-2 text-white hover:text-agri-400">Home</a>
+                <a href="#servicos" class="block px-3 py-2 text-white hover:text-agri-400">Serviços</a>
+                <a href="#tecnologia" class="block px-3 py-2 text-white hover:text-agri-400">Tecnologia</a>
+                <a href="#sobre" class="block px-3 py-2 text-white hover:text-agri-400">Sobre</a>
+                <a href="#contato" class="block px-3 py-2 text-agri-400 font-medium">Contato</a>
+            </div>
+        </div>
+    </nav>
+
+               
 
                 <button id="mobile-menu-btn" class="md:hidden text-slate-700 hover:text-agri-600">
                     <i class="fas fa-bars text-2xl"></i>
