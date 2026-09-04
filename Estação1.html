@@ -119,7 +119,23 @@
                     <h3>Gás Combustível</h3>
                     <p class="value" id="gas-level">-- <span class="unit">PPM</span></p>
                 </div>
+
+              <!-- Novos Cards de Índices Orbitais (Sentinel-2) -->
+<div class="card satellite-card">
+    <i class="fa-solid fa-satellite card-icon text-agri-600"></i>
+    <h3>Índice NDVI (Vigor)</h3>
+    <p class="value" id="ndvi-value">0.82 <span class="unit">(Ótimo)</span></p>
+    <span class="sub-text"> Sentinel-2 (Ciclo: 5 dias)</span>
+</div>
+<div class="card satellite-card">
+    <i class="fa-solid fa-chart-line card-icon text-agri-600"></i>
+    <h3>Índice NDRE (Clorofila)</h3>
+    <p class="value" id="ndre-value">0.45 <span class="unit">(Saudável)</span></p>
+    <span class="sub-text">Borda Vermelha</span>
+</div>
             </div>
+
+          
         </div>
 
         <!-- Coluna Direita: Mapa QGIS Dinâmico do Talhão Selecionado -->
@@ -143,6 +159,64 @@
 
     </main>
 
-    <script src="script.js"></script>
+    <script src="script.js">
+
+const dadosFazendas = {
+    "fazenda_norte": {
+        nome: "Fazenda Boa Vista (Cristalina - GO)",
+        area: "20 hectares",
+        talhoes: {
+            "talhao_01": { nome: "Talhão 01 - Setor Soja/Café", lat: -16.7604, lon: -47.6125, ndvi: "0.84", ndre: "0.48", status: "Saudável" },
+            "talhao_02": { nome: "Talhão 02 - Irrigação Grãos", lat: -16.7650, lon: -47.6180, ndvi: "0.79", ndre: "0.41", status: "Atenção Hídrica" },
+            "talhao_03": { nome: "Talhão 03 - Área de Preservação", lat: -16.7580, lon: -47.6090, ndvi: "0.91", ndre: "0.55", status: "Preservado" }
+        }
+    },
+    "fazenda_sul": {
+        nome: "Fazenda Primavera (Unaí - MG)",
+        area: "40 hectares",
+        talhoes: {
+            "talhao_01": { nome: "Talhão 01 - Lote Principal Soja", lat: -16.3575, lon: -46.9061, ndvi: "0.81", ndre: "0.44", status: "Saudável" },
+            "talhao_02": { nome: "Talhão 02 - Milho Safrinha", lat: -16.3620, lon: -46.9120, ndvi: "0.75", ndre: "0.38", status: "Atenção Hídrica" },
+            "talhao_03": { nome: "Talhao 03 - Pista de Rotação", lat: -16.3510, lon: -46.9000, ndvi: "0.68", ndre: "0.32", status: "Risco Crítico" }
+        }
+    }
+};
+
+function changeTalhaoData() {
+    const unidadeId = document.getElementById("unit-select").value;
+    const talhaoId = document.getElementById("talhao-select").value;
+    
+    const dadosUnidade = dadosFazendas[unidadeId];
+    const talhao = dadosUnidade.talhoes[talhaoId];
+
+    if (talhao) {
+        // Atualiza textos do mapa GIS
+        document.getElementById("map-subtitle").innerText = `Visualizando: ${dadosUnidade.nome} - ${talhao.nome} (${dadosUnidade.area})`;
+        
+        // Atualiza coordenadas no simulador GIS
+        document.querySelector(".gis-coords").innerText = `Lat: ${talhao.lat}, Long: ${talhao.lon}`;
+        
+        // Atualiza os índices do Sentinel-2 na tela
+        document.getElementById("ndvi-value").innerHTML = `${talhao.ndvi} <span class="unit">(${talhao.status})</span>`;
+        document.getElementById("ndre-value").innerHTML = `${talhao.ndre} <span class="unit">(Borda Vermelha)</span>`;
+    }
+}
+
+function loadTalhoes() {
+    const unidadeId = document.getElementById("unit-select").value;
+    const talhaoSelect = document.getElementById("talhao-select");
+    talhaoSelect.innerHTML = ""; // Limpa opções anteriores
+
+    const talhoesDaUnidade = dadosFazendas[unidadeId].talhoes;
+    for (let key in talhoesDaUnidade) {
+        let opt = document.createElement("option");
+        opt.value = key;
+        opt.innerHTML = talhoesDaUnidade[key].nome;
+        talhaoSelect.appendChild(opt);
+    }
+    changeTalhaoData();
+}
+      
+    </script>
 </body>
-</html>  eu queria amostrar na página os indices do talhão da fazenda boa vista de 20 hectares  e a outra Primavera do Sul 40 hectares com os talhõe escolhidos  a partir de dados do satélite sentinel-2  ciclo de 5 dias captar imagens e novos indices para plantação da fazenda   NDVI e NDRE escolher a AOI de acordo melhor área de interesse em Minas Gerais e Goías para representar as duas fazendas 
+</html>
